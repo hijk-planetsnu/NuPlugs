@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HomeWorldWarpCircles
 // @namespace    http://tampermonkey.net/
-// @version      0.04
+// @version      0.05
 // @description  Test Plugin: Add warp circles to homeworld before Turn #010
 // @author       Hijk
 // @include      http://planets.nu/#/*
@@ -34,6 +34,7 @@ Code Tasks:
 
 NOTE: Function is dependanet upon the vgaMapMarkUp plugin.
 
+v0.05 - Put small circle at center of star map
 v0.04 - Use "vgap.addOns.vgapMapMarkUp.overlays" to perform redraw.
 v0.03 - Instead of using a hard-coded "note" string, create a real "overlay"
    object defining the warp circles so that the map can be refreshed with the new
@@ -51,11 +52,11 @@ hijk.180618
 function wrapper() { // . . . . . . . . . . . wrapper for injection
     var debug = false;
     var plgname = "HomeWorldWarpCircles";
-    var plgversion = 0.03;
+    var plgversion = 0.05;
     var hwwc_show = true;                            // display option for left menu bar
     var hwwc_autorun = false;                        // auto-run the add Note function on game load
     var drawNoteType = -133919;                      // MapDraw type code used by vgaMapMarkUp
-    var newNoteIDnum = 6;                            // default
+    var newNoteIDnum = 7;                            // default 7
     var wradius = [81, 162, 243]                     // warp distances (ly)
     var wcolor = ["#669966", "#669966", "#ffff00"]   // warp ring colors
 
@@ -74,11 +75,21 @@ var drawWarpCircles = {
                     if (debug) {console.log("   >>> HW location = ("+planet.x+","+planet.y+")");}
     //- --- --- - - --- --- ---- - - --- --- ---
     // 2. Create NOTE object using the MapDraw data structure . . . . . . . . . . .
-                    // Create two overlay layers, 1 = HOME, 2 = ENEMY . . . . .
-                    var warpz = [{"active":true,"name":"HOME", "markups":[]}, {"active":true,"name":"ENEMY","markups":[]},];
-                    for (var j = 0; j < 3; j++){
+                    // Create two overlay layers, 0 = HOME and 1 = ENEMY . . . . .
+                    var warpz = [{"active":true,"name":"HOME", "markups":[]}, {"active":true,"name":"ENEMY", "markups":[]}];
+                    for (var j = 0; j < wradius.length; j++){
                         warpz[0].markups[j] = {"type":"circle","x":planet.x,"y":planet.y,"r":wradius[j],"attr":{"stroke":wcolor[j]},"color":wcolor[j],"zmin":0,"zmax":0}
                     }
+                    // Add a reference point in the map center . . . . .
+                    var center = {'x': 0.0, 'y': 0.0}
+                    for (var k = 0; k < vgap.planets.length; k++) {
+                        center.x += vgap.planets[k].x
+                        center.y += vgap.planets[k].y
+                    }
+                    center.x = center.x/vgap.settings.numplanets
+                    center.y = center.y/vgap.settings.numplanets
+                    if (debug) {console.log("       >>> Map Center = ("+center.x+","+center.y+")");}
+                    warpz[1].markups[0] = {"type":"circle","x":center.x,"y":center.y,"r":16,"attr":{"stroke":"#ff0000"},"color":"#ff0000","zmin":0,"zmax":0}
     //- --- --- - - --- --- ---- - - --- --- ---
     // 3. Save as NoteObject and queue for draw on starmap . . . .
                     vgaPlanets.prototype.saveObjectAsNote(newNoteIDnum, drawNoteType, pid, warpz);
@@ -106,7 +117,7 @@ var drawWarpCircles = {
     //- --- --- - - --- --- ---- - - --- --- ---
     checkNoteNull: function(type) {
         var doesNotExist = 1;
-        for (var i = 0; i < 20; i++){
+        for (var i = 0; i < vgap.notes.length; i++){
             var note = vgap.notes[i];
             if (note !== null){
                 if (debug) {console.log("   >>>     type = >"+note.targettype+"< and id = "+note.id);}
