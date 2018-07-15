@@ -1,18 +1,17 @@
 # NuPlugs
 AddOn plugins for Planets NU client interface
+hijk.planets@gmail.com
 
-To learn how the Nu plugins work, I have used a few simple projects to explore graphic elements and ship + planet controls and variables. The code is highly derivative of other Nu plugin coders and I am thankful for the numerous examples of code available in other plugins.
+To learn how the Nu plugins work, I have used a few simple projects to explore graphic elements and ship + planet controls and variables. The code is highly derivative of other Nu plugin coders and I am thankful for the numerous examples of code I have examined from other execellent plugins.
 
 1. Draw Home World Warp Circles - utilizes the Nu Draw Map addon style of Note overlays to add 81, 162 and 243 ly radii circles around your homeworld at the start of a game.
 
-2. Load Freighters  - early in game I use a repetitive load out for MDSF/LDSF and got tired of having to click for  colonists, fuel, supplies, MCs, warp speed, and ready status. This just automates the unload/load process at your HW starbase during the first 30 turns of a game.
+2. Load Freighters  - early in game I use a repetitive load out for MDSF/LDSF and got tired of having to click for  colonists, fuel, supplies, MCs, warp speed, and ready status. This just automates the unload/load process at your HW starbase during the first 30 turns of a game. Updates have added specific control functions for Lizard Class Cruiders and PL21's. Each new race I play I will likely add in the routine load commands I use with the most common "work" ships.
 
-3. Load Lady Royale - This was a suggested topic at McNimble's PlanetCon 2017 talk and a code draft was written by Whisperer. I have re-worked the structure to my way of thinking/tackling problems and added a few other automatic controls that I wanted in place for PRIV games. And I spent some time trying to use the ship-to-planet beam transfer variables as a way to try and have the clans onboard for MCs, and then transfered down to the planet population for growth calc (when a SB is not present and the "Unload Freighters" mission is not available.)
+3. Load Lady Royale - This was a suggested topic at @McNimble's PlanetCon 2017 talk and a code draft was written by @Whisperer. I have re-worked the structure to my way of thinking/tackling problems and added a few other automatic controls that I wanted in place for PRIV games. And I spent some time trying to use the ship-to-planet beam transfer variables as a way to try and have the clans onboard for MCs, and then transfered down to the planet population for growth calc (when a SB is not present and the "Unload Freighters" mission is not available.)
 
-4. Set Map Focus - (in progress). A working js plugin is available the sets the starmap default focus to the location of your HomeWorld. Planned improvements will be to add optional selections via a input dashboard to select from a variety of options for how the x,y point should be calculated. Remember: beta. Better to try some initial tests on training games.
+4. Set Map Focus - (beta). A working plugin is available that sets the starmap default focus to the location of your HomeWorld. Planned improvements will be to add optional selections via a input dashboard to select how the x,y point should be calculated. Remember: beta. Better to try some initial tests on training games.
 
 5. Ship Baptism - (planned). Want to have multiple ship name lists that can be swaped out as an option during any turn. The idea is to keep one internal ship name list that is used client-side, but before submitting the turn, the ship names could be changed with other lists and these would be the names that the other players would see and the names that would be used in explosion reports. 
-
-hijk.planets@gmail.com
 
 
