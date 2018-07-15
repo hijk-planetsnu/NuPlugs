@@ -8,13 +8,21 @@
 // @include      http://planets.nu/*
 // @include      http://play.planets.nu/*
 // @include      http://test.planets.nu/*
-// @grant        none
 // ==/UserScript==
 /*- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 - --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 OBJECTIVE:  Allow users to define a map focus position as a default for when a
     new turn starmap is opened.
 
+RUN: executes via two options - (a) a left menu item that triggers the code
+    function when clicked; or (b) an autorun var that will generate the x,y calc
+    and save the note when loaded.
+
+TODO: - add user selected options for centering starmap
+      - add a default in case of disaster (HW lost, SB destoyed, ??)
+
+v0.01 - Default view is to center on HW, calculated as the planet with a
+          starbase and maximum number of clans.
 
 hijk.180714
 - --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
@@ -24,9 +32,9 @@ function wrapper() { // . . . . . . . . . . . wrapper for injection
     var debug = true;
     var plgname = "MapFocus";
     var plgversion = 0.01;
-    var mf_show = true;                           // display option for left menu bar
-    var mf_autorun = true;                        // auto-run the load Note function
-    var noteType = -1567;
+    var mf_show = true;         // display option for left menu bar
+    var mf_autorun = true;      // auto-run the load Note function
+    var noteType = -1567;       // default
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 // START PLUGIN BLOCK . . . . . . . . . . . . . . . .
@@ -39,6 +47,7 @@ var setMapFocus = {
             var idnum = setMapFocus.getNoteIDnum(noteType);
             var mfnote = vgaPlanets.prototype.getObjectFromNote(0, noteType)
             vgap.map.centerMap(parseInt(mfnote.x), parseInt(mfnote.y));
+        //- --- --- - - --- --- ---- - - --- --- ---
         } else {
         //- --- --- - - --- --- ---- - - --- --- ---
         // Iniatilize the focus point data and save x,y coordinates.
@@ -52,30 +61,26 @@ var setMapFocus = {
                     if (maxCols < planet.clans) {
                         maxCols = planet.clans;
                         planHW  = planet;
-                    }
-                }
-            }
+            }   }  } // close all loops
             if (debug) {console.log("   >>> Focal Point Location = ("+planHW.x+","+planHW.y+")");}
         // Set NOTE data . . . . . . . . . . .
             var mapfc = {"name":"mapFocusPoint","HW":1,"WT":0,"Sphere":0,"x":planHW.x,"y":planHW.y};
             var IDnum = setMapFocus.getNoteIDnum();
             vgaPlanets.prototype.saveObjectAsNote(IDnum, noteType, mapfc);
             vgap.map.centerMap(planHW.x, planHW.y);
-    }
+       } // close else if note does not exist . . . . . . . .
     },
     //- --- --- - - --- --- ---- - - --- --- ---
     processload: function() {
-        if (debug) { console.log("   >>> MapFocus: plugin start");}
         mf_show = true;
     },
     //- --- --- - - --- --- ---- - - --- --- ---
     loaddashboard: function() {
-        if (debug) {console.log("   >>> MapFocus: plugin dashboard");}
-        if(mf_autorun && setMapFocus.checkNote(noteType)) {
+        if (mf_autorun) {
             setMapFocus.loadFocus();
             mf_show = false;
         }
-        if(mf_show) {
+        if (mf_show) {
             vgap.dash.addLeftMenuItem(" Map Focus »", setMapFocus.loadFocus, $("#DashboardMenu").find("ul:eq(3)"));
         }
     },
@@ -104,7 +109,7 @@ var setMapFocus = {
             if (note.id == 0) {
                 noteIDnum = i+1;
                 break;
-        }    } // close loops
+        }   } // close loops
         if (debug) {console.log("   >>>     mapfocus note id# = "+noteIDnum);}
         return noteIDnum;
     },
