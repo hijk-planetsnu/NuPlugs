@@ -1,5 +1,6 @@
 # NuPlugs
 AddOn plugins for Planets NU client interface
+
 hijk.planets@gmail.com
 
 To learn how the Nu plugins work, I have used a few simple projects to explore graphic elements and ship + planet controls and variables. The code is highly derivative of other Nu plugin coders and I am thankful for the numerous examples of code I have examined from other execellent plugins.
