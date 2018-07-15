@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LoadMasterFreighters
 // @namespace    http://tampermonkey.net/
-// @version      0.07
+// @version      0.08
 // @description  Test Plugin: Load MDSFs and LDSFs at SB during first 30 turns
 // @author       Hijk
 // @include      http://planets.nu/#/*
@@ -23,11 +23,12 @@ Code Tasks:
    3. Find any MDSFs/LDSFs at homeworld.
    4. Unload any cargo
    5. Load for colonize missions
-       MDSF defaut: CLANS =  150; SUPPS =  50; MCs = 150
-       LDSF defaut: CLANS = 1100; SUPPS = 100; MCs = 300
+       MDSF defaut: CLANS =  133; SUPPS = 67; MCs = 350
+       LDSF defaut: CLANS = 1130; SUPPS = 70; MCs = 350
    6. Ready ship for launch
    7. Stop execution after turn 30 and remove option from dash menu.
 
+v0.08 - More extensive PL21 control module
 v0.07 - fix logic error: do not execute every time the dashboard changes to starmap.
            Use readystatus as a loop filter. Once a ship is marked ready, do not change.
 v0.06 - Control added for HYP ship after jump
@@ -47,13 +48,13 @@ function wrapper() { // . . . . . . . . . . . wrapper for injection
     var debug = true;
     var turnLim = 30;
     var plgname = "LoadMasterFreighters";
-    var plgversion = 0.07;
+    var plgversion = 0.08;
     var mdsf_show = false; // show in side bar menu - click to run
     var mdsf_run = true;   // auto-run every turn
     var allCargo = ["molybdenum","tritanium","duranium","clans","supplies","megacredits"];
     var colCargo = ["clans","supplies","megacredits"];
-    var mdsfLoads = [150, 50, 150];
-    var ldsfLoads = [1100, 100, 300];
+    var mdsfLoads = [133, 67, 350];
+    var ldsfLoads = [1130,70, 350];
     var fuelLDSF = 250;
     var fuelMDSF = 50;
 
@@ -102,13 +103,13 @@ var loadFreighters = {
                             if (ship.hullid == 22) {
                                 if (debug) {console.log("   >>> --- --- - - - -   - -- ---- - - - - -- - -  -");}
                                 if (debug) {console.log("   >>> LCC FOUND  @ ("+hwx+","+hwy+")");}
-                                var loadsLCC = [210, 50, 150];
-                                var torpLCC  = 20;
+                                var loadsLCC = [203, 67, 350];
+                                var torpLCC  = 10;
                                 var fuelLCC  = 250;
                                 loadFreighters.unloadSHIP(ship, planet);
                                 loadFreighters.uploadSHIP(ship, planet, loadsLCC);
                                 ship.warp = 9;                       // set warp speed in case it is a new LDSF
-                                ship.readystatus = 1;                // set status from 'idle' to 'ready'
+                                ship.readystatus = 0;                // set status from 'idle' to 'ready'
                                 ship.mission = 9;                    // set mission to Cloak or maybe Hiss==8
                                 ship.changed = 1;
                                 if (ship.neutronium != fuelLCC){
@@ -131,6 +132,29 @@ var loadFreighters = {
                                     if (debug) {console.log("       >>>     loading torps: "+addTorps+" mk4");}
                                 }
                             } // end LCC
+    //- --- --- - - --- --- ---- - - --- --- --- ---- -
+    // 5. Any PL21 here to be loaded . . . ???
+                            if (ship.hullid == 77) {
+                                if (debug) {console.log("   >>> --- --- - - - -   - -- ---- - - - - -- - -  -");}
+                                if (debug) {console.log("   >>> PL21 FOUND  @ HW-SB ("+hwx+","+hwy+")");}
+                                var loadsPL21 = [20, 0, 0];
+                                var fuelPL21  = 50;
+                                loadFreighters.unloadSHIP(ship, planet);
+                                loadFreighters.uploadSHIP(ship, planet, loadsPL21);
+                                ship.warp = 9;                       // set warp speed in case it is a new LDSF
+                                ship.readystatus = 0;                // set status from 'idle' to 'ready'
+                                ship.mission = 8;                    // set mission to DarkSense
+                                ship.changed = 1;
+                                if (ship.neutronium != fuelPL21){
+                                    var addFuelx = fuelPL21 - ship.neutronium;
+                                    var transverbx = "loading";
+                                    if (addFuel < 0) { transverbx = "unloading";}
+                                    ship.neutronium += addFuelx;
+                                    planet.neutronium -= addFuelx;
+                                    planet.changed = 1;
+                                    if (debug) {console.log("       >>>     "+transverbx+" fuel: "+addFuelx+" kt");}
+                                }
+                            }// close if PL21
                         //- --- --- - - --- --- ---- - - --- --- --- ---- -
                         } // end if this ship is at your HW starbase . . . .
                     } //end for ships @ SB loop . . .
@@ -144,9 +168,11 @@ var loadFreighters = {
     },
 
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
-    // 5. Standard Ship OPS for ALL turns at any location . . . . . .
+    // 6. Standard Ship OPS for ALL turns at any location . . . . . .
     //    Always called every turn . . . . . . .
     shipControl: function () {
+        if (debug) {console.log("   >>> --- --- - - - -   - -- ---- - - - - -- - -  -");}
+        if (debug) {console.log("   >>> Scanning All Ships . . . . . ");}
         for (var j = 0; j < vgap.ships.length; j++) {
             var ship = vgap.ships[j];
             var pid = vgap.player.id;
@@ -159,7 +185,7 @@ var loadFreighters = {
                 if (ship.mission == 10) {
                     ship.mission = 4;   // change BeamUpFuel to SensorSweep
                 }
-                // Any PL21 HYP ships . . .
+                // Any PL21 HYP ships . . . . . . . . . . .
                 if (ship.hullid == 77) {
                     // Any HYP ship that just jumped should be reset . . .
                     if (ship.friendlycode == "HYP"){
@@ -170,23 +196,43 @@ var loadFreighters = {
                     else if (ship.mission != 8){
                         ship.mission = 8;    // set mission to Dark Sense
                     }
+                    // If planet is unowned and has no Amorphs => colonize and react . . . . . . . . . .
+                    if (debug) {console.log("        >>> check loaction PL21: ID#"+ship.id);}
+                    var planet = vgap.planetAt(ship.x,ship.y)
+                    if (planet === undefined){ if (debug)      {console.log("            >>> no planet at ("+ship.x+","+ship.y+")");}}
+                    if (planet !== undefined){
+                        if (planet.ownerid == pid) {if (debug) {console.log("            >>> orbiting OWN planet = id:"+planet.id);}}
+                        if (planet.ownerid == 0 && planet.nativetype !== 5 && ship.transferclans == 0){
+                            ship.transferclans = 1;     // beam transfer 1 clan
+                            ship.clans -= 1;
+                            ship.target = planet;
+                            ship.targetx = ship.x;
+                            ship.targety = ship.y;
+                            ship.transfertargetid = planet.id;
+                            ship.transfertargettype = 1;
+                            if (debug) {console.log("            >>> orbiting UNOWNED planet = id:"+planet.id);}
+                        }
+                    }
+                //  end PL21 ship processing loop . . . . . . . . . . .
                 }
             }
         }
     },
 
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
-    // 6. Ship settings to ready for launch . . . . . .
+    // 7. Ship settings to ready for launch . . . . . .
     prepSHIP: function (ship, planet, fuel) {
         ship.warp = 9;                      // set warp speed in case it is a new LDSF
         //ship.readystatus = 1;             // set status from 'idle' to 'ready'
         ship.mission = 4;                   // set mission to sensor sweep
         var addFuel = fuel - ship.neutronium;
-        ship.neutronium += addFuel;
-        planet.neutronium -= addFuel;
+        if (planet.neutronium > addFuel + 100) {
+            ship.neutronium += addFuel;
+            planet.neutronium -= addFuel;
+        }
     },
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
-    // 7. Remove all cargo on board . . . .
+    // 8. Remove all cargo on board . . . .
     unloadSHIP: function (ship, planet) {
         for (var i = 0; i < allCargo.length; i++) {
             var load = parseInt(ship[allCargo[i]]);
@@ -199,7 +245,7 @@ var loadFreighters = {
         }
     },
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
-    // 8. Load clans, supplies and MCs . . . .. .
+    // 9. Load clans, supplies and MCs . . . .. .
     uploadSHIP: function (ship, planet, xLoads) {
         for (var i = 0; i < colCargo.length; i++) {
             if (planet[colCargo[i]] > xLoads[i]){
