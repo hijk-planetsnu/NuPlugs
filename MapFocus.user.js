@@ -4,10 +4,10 @@
 // @version      0.01
 // @description  Define a default point of view position when opening starmap.
 // @author       Hijk
-// @include      http://planets.nu/#/*
 // @include      http://planets.nu/*
-// @include      http://play.planets.nu/*
-// @include      http://test.planets.nu/*
+// @include      https://planets.nu/*
+// @include      http://*.planets.nu/*
+// @include      https://*.planets.nu/*
 // ==/UserScript==
 /*- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 - --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
@@ -29,7 +29,7 @@ hijk.180714
 - --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -*/
 
 function wrapper() { // . . . . . . . . . . . wrapper for injection
-    var debug = true;
+    var debug = false;
     var plgname = "MapFocus";
     var plgversion = 0.01;
     var mf_show = true;         // display option for left menu bar
