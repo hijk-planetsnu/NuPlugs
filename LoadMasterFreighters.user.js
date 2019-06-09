@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         LoadMasterFreighters
 // @namespace    http://tampermonkey.net/
-// @version      0.08
+// @version      0.09
 // @description  Test Plugin: Load MDSFs and LDSFs at SB during first 30 turns
 // @author       Hijk
-// @include      http://planets.nu/#/*
 // @include      http://planets.nu/*
-// @include      http://play.planets.nu/*
-// @include      http://test.planets.nu/*
+// @include      https://planets.nu/*
+// @include      http://*.planets.nu/*
+// @include      https://*.planets.nu/*
 // @grant        none
 // ==/UserScript==
 /*- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
@@ -23,11 +23,12 @@ Code Tasks:
    3. Find any MDSFs/LDSFs at homeworld.
    4. Unload any cargo
    5. Load for colonize missions
-       MDSF defaut: CLANS =  133; SUPPS = 67; MCs = 350
-       LDSF defaut: CLANS = 1130; SUPPS = 70; MCs = 350
+       MDSF defaut: CLANS =  144; SUPPS = 56; MCs = 300
+       LDSF defaut: CLANS = 1144; SUPPS = 56; MCs = 300
    6. Ready ship for launch
    7. Stop execution after turn 30 and remove option from dash menu.
 
+v0.09 - Added Bird fleet ships; added mass checks prior to torp building loops
 v0.08 - More extensive PL21 control module
 v0.07 - fix logic error: do not execute every time the dashboard changes to starmap.
            Use readystatus as a loop filter. Once a ship is marked ready, do not change.
@@ -40,23 +41,26 @@ v0.03 - add some more routine checks for all freighters:
       - filter HW planet on clan population; only transfer @ HW, not other SBs.
 v0.02 - add controls for LDSF, not just MDSF
 
-hijk.180630
+hijk.190316
 - --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 - --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -*/
 
 function wrapper() { // . . . . . . . . . . . wrapper for injection
-    var debug = true;
-    var turnLim = 30;
-    var plgname = "LoadMasterFreighters";
-    var plgversion = 0.08;
-    var mdsf_show = false; // show in side bar menu - click to run
-    var mdsf_run = true;   // auto-run every turn
-    var allCargo = ["molybdenum","tritanium","duranium","clans","supplies","megacredits"];
-    var colCargo = ["clans","supplies","megacredits"];
-    var mdsfLoads = [133, 67, 350];
-    var ldsfLoads = [1130,70, 350];
-    var fuelLDSF = 250;
-    var fuelMDSF = 50;
+    var debug     = false;
+    var turnLim   = 30;
+    var plgname   = "LoadMasterFreighters";
+    var plgversion = 0.09;
+    var mdsf_show = false;  // show in side bar menu - click to run
+    var mdsf_run  = true;   // auto-run every turn
+    var allCargo  = ["molybdenum","tritanium","duranium","clans","supplies","megacredits"];
+    var colCargo  = ["clans","supplies","megacredits"];
+    var mdsfLoads = [100,   100, 300];   // first wave colonize with factories
+    var ldsfLoads = [1000,  200, 300];   // colony build
+    var fcode     = 'xol';               // fcode trigger for script functions;
+    var fuelLDSF  = 200;
+    var fuelMDSF  = 60;
+    var addFuel   = 0;
+    var transverb = 0;
 
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 var loadFreighters = {
@@ -75,20 +79,24 @@ var loadFreighters = {
                     for (var j = 0; j < vgap.ships.length; j++) {
                         var ship = vgap.ships[j];
                         if (ship.ownerid == pid && ship.x == hwx && ship.y == hwy && ship.readystatus == 0){
+                            // -- --- - -- -- --- ---- - - - --
+                            // set FC of any new ship built to the trigercode for script control functions . . . .
+                            if (ship.neutronium == 0){ ship.friendlycode = fcode;}
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
     // 2. Any MDSFs here to be loaded . . . ???
-                            if (ship.hullid == 16) {
+                            if (ship.hullid == 16 && ( ship.friendlycode == fcode || vgap.settings.turn == 1)) {
                                 if (debug) {console.log("   >>> --- --- - - - -   - -- ---- - - - - -- - -  -");}
                                 if (debug) {console.log("   >>> MDSF FOUND  @ ("+hwx+","+hwy+")");}
                                 loadFreighters.unloadSHIP(ship, planet);
                                 loadFreighters.uploadSHIP(ship, planet, mdsfLoads);
                                 loadFreighters.prepSHIP(ship, planet, fuelMDSF);
+                                ship.friendlycode = fcode;
                                 ship.changed = 1;
                                 planet.changed = 1;
                             } //close if MDSF
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
     // 3. Any LDSFs here to be loaded . . . ???
-                            if (ship.hullid == 17) {
+                            if (ship.hullid == 17 && ship.friendlycode == fcode) {
                                 if (debug) {console.log("   >>> --- --- - - - -   - -- ---- - - - - -- - -  -");}
                                 if (debug) {console.log("   >>> LDSF FOUND  @ ("+hwx+","+hwy+")");}
                                 loadFreighters.unloadSHIP(ship, planet);
@@ -100,7 +108,7 @@ var loadFreighters = {
 
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
     // 4. Any Lizard Class Cruisers . . .
-                            if (ship.hullid == 22) {
+                            if (ship.hullid == 22 && ship.friendlycode == fcode) {
                                 if (debug) {console.log("   >>> --- --- - - - -   - -- ---- - - - - -- - -  -");}
                                 if (debug) {console.log("   >>> LCC FOUND  @ ("+hwx+","+hwy+")");}
                                 var loadsLCC = [203, 67, 350];
@@ -113,8 +121,8 @@ var loadFreighters = {
                                 ship.mission = 9;                    // set mission to Cloak or maybe Hiss==8
                                 ship.changed = 1;
                                 if (ship.neutronium != fuelLCC){
-                                    var addFuel = fuelLCC - ship.neutronium;
-                                    var transverb = "loading";
+                                    addFuel = fuelLCC - ship.neutronium && planet.neutronium > fuelLCC;
+                                    transverb = "loading";
                                     if (addFuel < 0) { transverb = "unloading";}
                                     ship.neutronium += addFuel;
                                     planet.neutronium -= addFuel;
@@ -122,40 +130,137 @@ var loadFreighters = {
                                     if (debug) {console.log("       >>>     "+transverb+" fuel: "+addFuel+" kt");}
                                 }
                                 if (ship.torpedoid == 6 && ship.ammo < torpLCC){
-                                    var addTorps = torpLCC - ship.ammo;
-                                    ship.ammo += addTorps;
-                                    planet.megacredits -= addTorps * 13;
-                                    planet.tritanium -= addTorps;
-                                    planet.molybdenum -= addTorps;
-                                    planet.duranium -= addTorps;
-                                    planet.changed = 1;
-                                    if (debug) {console.log("       >>>     loading torps: "+addTorps+" mk4");}
+                                    var addTorp22 = torpLCC - ship.ammo;
+                                    if ( (planet.megacredits > (addTorp22 * 13)) && planet.tritanium > addTorp22 && planet.molybdenum > addTorp22 && planet.duranium > addTorp22){
+                                        ship.ammo += addTorp22;
+                                        planet.megacredits -= addTorp22 * 13;
+                                        planet.tritanium -= addTorp22;
+                                        planet.molybdenum -= addTorp22;
+                                        planet.duranium -= addTorp22;
+                                        planet.changed = 1;
+                                        if (debug) {console.log("       >>>     loading torps: "+addTorps+" mk4");}
+                                    }
                                 }
                             } // end LCC
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
-    // 5. Any PL21 here to be loaded . . . ???
-                            if (ship.hullid == 77) {
+    // 5. Evil Empire: Any PL21 or MigScout here to be loaded . . . ???
+                            if ( (ship.hullid == 77 || ship.hullid == 73) && ship.friendlycode == fcode) {
                                 if (debug) {console.log("   >>> --- --- - - - -   - -- ---- - - - - -- - -  -");}
                                 if (debug) {console.log("   >>> PL21 FOUND  @ HW-SB ("+hwx+","+hwy+")");}
                                 var loadsPL21 = [20, 0, 0];
                                 var fuelPL21  = 50;
                                 loadFreighters.unloadSHIP(ship, planet);
                                 loadFreighters.uploadSHIP(ship, planet, loadsPL21);
-                                ship.warp = 9;                       // set warp speed in case it is a new LDSF
+                                ship.warp = ship.engineid;           // set warp speed in case it is a new LDSF
                                 ship.readystatus = 0;                // set status from 'idle' to 'ready'
                                 ship.mission = 8;                    // set mission to DarkSense
                                 ship.changed = 1;
-                                if (ship.neutronium != fuelPL21){
-                                    var addFuelx = fuelPL21 - ship.neutronium;
-                                    var transverbx = "loading";
-                                    if (addFuel < 0) { transverbx = "unloading";}
-                                    ship.neutronium += addFuelx;
-                                    planet.neutronium -= addFuelx;
+                                if (ship.neutronium != fuelPL21 && planet.neutronium > fuelPL21){
+                                    addFuel = fuelPL21 - ship.neutronium;
+                                    transverb = "loading";
+                                    if (addFuel < 0) { transverb = "unloading";}
+                                    ship.neutronium += addFuel;
+                                    planet.neutronium -= addFuel;
                                     planet.changed = 1;
-                                    if (debug) {console.log("       >>>     "+transverbx+" fuel: "+addFuelx+" kt");}
+                                    if (debug) {console.log("       >>>     "+transverb+" fuel: "+addFuel+" kt");}
                                 }
                             }// close if PL21
-                        //- --- --- - - --- --- ---- - - --- --- --- ---- -
+    //- --- --- - - --- --- ---- - - --- --- --- ---- -
+    // 6. Empire of the Birds: Any Swift Heart . . . ???
+                            if (ship.hullid == 27 && ship.friendlycode == fcode) {
+                                if (debug) {console.log("   >>> --- --- - - - -   - -- ---- - - - - -- - -  -");}
+                                if (debug) {console.log("   >>> Swiftie FOUND  @ HW-SB ("+hwx+","+hwy+")");}
+                                var loadsSwift = [15, 5, 20];
+                                var fuelSwift  = 50;
+                                loadFreighters.unloadSHIP(ship, planet);
+                                loadFreighters.uploadSHIP(ship, planet, loadsSwift);
+                                ship.warp = 9;                       // set warp speed in case it is a new LDSF
+                                ship.readystatus = 0;                // set status from 'idle' to 'ready'
+                                ship.mission = 4;                    // set mission to Sensor Sweep
+                                ship.changed = 1;
+                                if (ship.neutronium != fuelSwift && planet.neutronium > fuelSwift){
+                                    addFuel = fuelSwift - ship.neutronium;
+                                    transverb = "loading";
+                                    if (addFuel < 0) { transverb = "unloading";}
+                                    ship.neutronium += addFuel;
+                                    planet.neutronium -= addFuel;
+                                    planet.changed = 1;
+                                    if (debug) {console.log("       >>>     "+transverb+" fuel: "+addFuel+" kt");}
+                                }
+                            }// close if Swift Heart
+    //- --- --- - - --- --- ---- - - --- --- --- ---- -
+    // 7. Any Resolute Battle Ships . . .
+                            if (ship.hullid == 31 && ship.friendlycode == fcode) {
+                                if (debug) {console.log("   >>> --- --- - - - -   - -- ---- - - - - -- - -  -");}
+                                if (debug) {console.log("   >>> Ressie FOUND  @ ("+hwx+","+hwy+")");}
+                                var loadsRessie = [215, 30, 30];
+                                var torpRessie  = 35;
+                                var fuelRessie  = 250;
+                                loadFreighters.unloadSHIP(ship, planet);
+                                loadFreighters.uploadSHIP(ship, planet, loadsRessie);
+                                ship.warp = 9;                       // set warp speed in case it is a new LDSF
+                                ship.readystatus = 0;                // set status from 'idle' to 'ready'
+                                ship.mission = 9;                    // set mission to Cloak or maybe Hiss==8
+                                ship.changed = 1;
+                                if (ship.neutronium != fuelRessie && planet.neutronium > fuelRessie){
+                                    addFuel = fuelRessie - ship.neutronium;
+                                    transverb = "loading";
+                                    if (addFuel < 0) { transverb = "unloading";}
+                                    ship.neutronium += addFuel;
+                                    planet.neutronium -= addFuel;
+                                    planet.changed = 1;
+                                    if (debug) {console.log("       >>>     "+transverb+" fuel: "+addFuel+" kt");}
+                                }
+                                if (ship.torpedoid == 6 && ship.ammo < torpRessie){
+                                    var addTorp31 = torpRessie - ship.ammo;
+                                    if ( (planet.megacredits > (addTorp31 * 13)) && planet.tritanium > addTorp31 && planet.molybdenum > addTorp31 && planet.duranium > addTorp31){
+                                        ship.ammo += addTorp31;
+                                        planet.megacredits -= addTorp31 * 13;
+                                        planet.tritanium -= addTorp31;
+                                        planet.molybdenum -= addTorp31;
+                                        planet.duranium -= addTorp31;
+                                        planet.changed = 1;
+                                        if (debug) {console.log("       >>>     loading torps: "+addTorp31+" mk4");}
+                                    }
+                                }
+                            } // end Ressie
+    //- --- --- - - --- --- ---- - - --- --- --- ---- -
+    // 8. Any Fearless Wing Cruisers . . .
+                            if (ship.hullid == 28 && ship.friendlycode == fcode) {
+                                if (debug) {console.log("   >>> --- --- - - - -   - -- ---- - - - - -- - -  -");}
+                                if (debug) {console.log("   >>> Fearless FOUND  @ ("+hwx+","+hwy+")");}
+                                var loadsFear = [180, 50, 150];
+                                var torpFear  = 10;
+                                var fuelFear  = 150;
+                                loadFreighters.unloadSHIP(ship, planet);
+                                loadFreighters.uploadSHIP(ship, planet, loadsFear);
+                                ship.warp = 9;                       // set warp speed in case it is a new LDSF
+                                ship.readystatus = 0;                // set status from 'idle' to 'ready'
+                                ship.mission = 9;                    // set mission to Cloak or maybe Hiss==8
+                                ship.changed = 1;
+                                if (ship.neutronium != fuelFear && planet.neutronium > fuelFear){
+                                    addFuel = fuelFear - ship.neutronium;
+                                    transverb = "loading";
+                                    if (addFuel < 0) { transverb = "unloading";}
+                                    ship.neutronium += addFuel;
+                                    planet.neutronium -= addFuel;
+                                    planet.changed = 1;
+                                    if (debug) {console.log("       >>>     "+transverb+" fuel: "+addFuel+" kt");}
+                                }
+                                if (ship.torpedoid == 6 && ship.ammo < torpFear){
+                                    var addTorp28 = torpFear - ship.ammo;
+                                    if ( (planet.megacredits > (addTorp28 * 13)) && planet.tritanium > addTorp28 && planet.molybdenum > addTorp28 && planet.duranium > addTorp28){
+                                        ship.ammo += addTorp28;
+                                        planet.megacredits -= addTorp28 * 13;
+                                        planet.tritanium -= addTorp28;
+                                        planet.molybdenum -= addTorp28;
+                                        planet.duranium -= addTorp28;
+                                        planet.changed = 1;
+                                        if (debug) {console.log("       >>>     loading torps: "+addTorp28+" mk4");}
+                                    }
+                                }
+                            } // end Fearless
+     //- --- --- - - --- --- ---- - - --- --- --- ---- -
                         } // end if this ship is at your HW starbase . . . .
                     } //end for ships @ SB loop . . .
                 } //end if planet is your HomeWorld . . .
@@ -177,32 +282,46 @@ var loadFreighters = {
             var ship = vgap.ships[j];
             var pid = vgap.player.id;
             if (ship.ownerid == pid  && ship.readystatus == 0){
-                // Any ship that was set to BeamDownMoney on previous turn . . . reset FC
+            // Any ship that was set to BeamDownMoney on previous turn . . . reset FC
                 if (ship.friendlycode == "bdm") {
                     ship.friendlycode = loadFreighters.randFC(ship);
                 }
-                // Any ship that was set to BeamUpFuel on previous turn . . . reset mission
+            // Any ship that was set to BeamUpFuel on previous turn . . . reset mission
                 if (ship.mission == 10) {
                     ship.mission = 4;   // change BeamUpFuel to SensorSweep
+                    // Dark Sense Mission for Evil Empire
+                    if (vgap.player.raceid == 8){ ship.mission = 8 }
                 }
-                // Any PL21 HYP ships . . . . . . . . . . .
-                if (ship.hullid == 77) {
-                    // Any HYP ship that just jumped should be reset . . .
-                    if (ship.friendlycode == "HYP"){
-                        ship.warp = 9;
-                        ship.friendlycode = loadFreighters.randFC(ship);
-                        ship.mission = 10;   // set mission to BeamUpFuel
-                    }
-                    else if (ship.mission != 8){
-                        ship.mission = 8;    // set mission to Dark Sense
-                    }
+            // - - ---    - --- - - --- - ---   - -- - ---- - -- - - --
+                // Any MDSF . . . . . . . . . . .
+                if (ship.hullid == 16) {
                     // If planet is unowned and has no Amorphs => colonize and react . . . . . . . . . .
-                    if (debug) {console.log("        >>> check loaction PL21: ID#"+ship.id);}
+                    if (debug) {console.log("        >>> check loaction MDSF: ID#"+ship.id);}
                     var planet = vgap.planetAt(ship.x,ship.y)
                     if (planet === undefined){ if (debug)      {console.log("            >>> no planet at ("+ship.x+","+ship.y+")");}}
                     if (planet !== undefined){
                         if (planet.ownerid == pid) {if (debug) {console.log("            >>> orbiting OWN planet = id:"+planet.id);}}
-                        if (planet.ownerid == 0 && planet.nativetype !== 5 && ship.transferclans == 0){
+                        if (planet.ownerid == 0 && planet.nativetype !== 5 && ship.transferclans == 0 && ship.clans > 0){
+                            ship.mission = 11   // beam up duranium when exploring new planets
+                            if (ship.supplies > 9 && ship.megacredits > 29 && ship.clans > 9){
+                                var dropClans = 10
+                                var dropSups  = 10
+                                var dropMCs   = 30
+                                ship.transferclans = dropClans;     // beam transfer 10 clan
+                                ship.clans -= dropClans;
+                                ship.transfersupplies = dropSups;
+                                ship.supplies -= dropSups;
+                                ship.transfermegacredits = dropMCs;
+                                ship.megacredits -= dropMCs;
+                                ship.target = planet;
+                                ship.targetx = ship.x;
+                                ship.targety = ship.y;
+                                ship.transfertargetid = planet.id;
+                                ship.transfertargettype = 1;
+                                ship.changed = 1
+                                if (debug) {console.log("            >>> orbiting UNOWNED planet = id:"+planet.id);}
+                            }
+                            else {
                             ship.transferclans = 1;     // beam transfer 1 clan
                             ship.clans -= 1;
                             ship.target = planet;
@@ -210,11 +329,165 @@ var loadFreighters = {
                             ship.targety = ship.y;
                             ship.transfertargetid = planet.id;
                             ship.transfertargettype = 1;
+                            ship.changed = 1
+                            if (debug) {console.log("            >>> orbiting UNOWNED planet = id:"+planet.id);}
+                            }
+                        }
+                    }
+                }//  end MDSF ship processing loop . . . . . . . . . . .
+            // - - ---    - --- - - --- - ---   - -- - ---- - -- - - --
+                // Any PL21 HYP ships . . . . . . . . . . .
+                if (ship.hullid == 77) {
+                    // Any HYP ship that just jumped should be reset . . .
+                    if (ship.friendlycode.match(/HYP/i)){
+                        ship.warp = ship.engineid;
+                        ship.friendlycode = loadFreighters.randFC(ship);
+                        ship.mission = 8;
+                    }
+                    if (ship.mission != 8){
+                        ship.mission = 8;    // set mission to Dark Sense
+                    }
+                    // If planet is unowned and has no Amorphs => colonize and react . . . . . . . . . .
+                    if (debug) {console.log("        >>> check loaction MDSF: ID#"+ship.id);}
+                    planet = vgap.planetAt(ship.x,ship.y)
+                    if (planet === undefined){ if (debug)      {console.log("            >>> no planet at ("+ship.x+","+ship.y+")");}}
+                    if (planet !== undefined){
+                        if (planet.ownerid == pid) {if (debug) {console.log("            >>> orbiting OWN planet = id:"+planet.id);}}
+                        if (planet.ownerid == 0 && planet.nativetype !== 5 && ship.transferclans == 0 && ship.clans > 0){
+                            ship.transferclans = 1;     // beam transfer 1 clan
+                            ship.clans -= 1;
+                            ship.target = planet;
+                            ship.targetx = ship.x;
+                            ship.targety = ship.y;
+                            ship.transfertargetid = planet.id;
+                            ship.transfertargettype = 1;
+                            ship.mission = 10;   // set mission to BeamUpFuel
+                            ship.changed = 1
                             if (debug) {console.log("            >>> orbiting UNOWNED planet = id:"+planet.id);}
                         }
                     }
-                //  end PL21 ship processing loop . . . . . . . . . . .
-                }
+                }//  end PL21 ship processing loop . . . . . . . . . . .
+            // - - ---    - --- - - --- - ---   - -- - ---- - -- - - --
+            // Any MigScout ships . . . . . . . . . . .
+                if (ship.hullid == 73) {
+                    // Any HYP ship that just jumped should be reset . . .
+                    if (ship.mission != 8){
+                        ship.mission = 8;    // set mission to Dark Sense
+                    }
+                    // If planet is unowned and has no Amorphs => colonize and react . . . . . . . . . .
+                    if (debug) {console.log("        >>> check loaction MigScout: ID#"+ship.id);}
+                    planet = vgap.planetAt(ship.x,ship.y)
+                    if (planet === undefined){ if (debug)      {console.log("            >>> no planet at ("+ship.x+","+ship.y+")");}}
+                    if (planet !== undefined){
+                        if (planet.ownerid == pid) {if (debug) {console.log("            >>> orbiting OWN planet = id:"+planet.id);}}
+                        if (planet.ownerid == 0 && planet.nativetype !== 5 && ship.transferclans == 0 && ship.clans > 0){
+                            ship.transferclans = 1;     // beam transfer 1 clan
+                            ship.clans -= 1;
+                            ship.target = planet;
+                            ship.targetx = ship.x;
+                            ship.targety = ship.y;
+                            ship.transfertargetid = planet.id;
+                            ship.transfertargettype = 1;
+                            ship.changed = 1
+                            if (debug) {console.log("            >>> orbiting UNOWNED planet = id:"+planet.id);}
+                        }
+                    }
+                } //  end MigScout ship processing loop . . . . . . . . . . .
+            // - - ---    - --- - - --- - ---   - -- - ---- - -- - - --
+            // Any Swift Heart ships . . . . . . . . . . .
+                if (ship.hullid == 27) {
+                    // If planet is unowned and has no Amorphs => colonize and react . . . . . . . . . .
+                    if (debug) {console.log("        >>> check loaction Swiftie: ID#"+ship.id);}
+                    planet = vgap.planetAt(ship.x,ship.y)
+                    if (planet === undefined){ if (debug)      {console.log("            >>> no planet at ("+ship.x+","+ship.y+")");}}
+                    if (planet !== undefined){
+                        if (planet.ownerid == pid) {if (debug) {console.log("            >>> orbiting OWN planet = id:"+planet.id);}}
+                        if (planet.ownerid == 0 && planet.nativetype !== 5 && ship.transferclans == 0 && ship.clans > 0){
+                            ship.transferclans = 1;     // beam transfer 1 clan
+                            ship.clans -= 1;
+                            ship.target = planet;
+                            ship.targetx = ship.x;
+                            ship.targety = ship.y;
+                            ship.transfertargetid = planet.id;
+                            ship.transfertargettype = 1;
+                            ship.changed = 1
+                            if (debug) {console.log("            >>> orbiting UNOWNED planet = id:"+planet.id);}
+                        }
+                    }
+                } //  end Swift Heart ship processing loop . . . . . . . . . . .
+            // - - ---    - --- - - --- - ---   - -- - ---- - -- - - --
+            // Any Fearless . . . . . . . . . . .
+                if (ship.hullid == 28) {
+                    // If planet is unowned and has no Amorphs => colonize and react . . . . . . . . . .
+                    if (debug) {console.log("        >>> check loaction Fear/Ressie: ID#"+ship.id);}
+                    planet = vgap.planetAt(ship.x,ship.y)
+                    if (planet === undefined){ if (debug)      {console.log("            >>> no planet at ("+ship.x+","+ship.y+")");}}
+                    if (planet !== undefined){
+                        if (planet.ownerid == pid) {if (debug) {console.log("            >>> orbiting OWN planet = id:"+planet.id);}}
+                        if (planet.ownerid == 0 && planet.nativetype !== 5 && ship.transferclans == 0 && ship.clans > 0){
+                            ship.mission = 11   // default mission beam up duranium . . . . . .
+                            if (ship.supplies > 5 && ship.megacredits > 14 && ship.clans > 9){
+                                dropClans = 10
+                                dropSups  = 5
+                                dropMCs   = 15
+                                ship.transferclans = dropClans;     // beam transfer 10 clan
+                                ship.clans -= dropClans;
+                                ship.transfersupplies = dropSups;
+                                ship.supplies -= dropSups;
+                                ship.transfermegacredits = dropMCs;
+                                ship.megacredits -= dropMCs;
+                                ship.target = planet;
+                                ship.targetx = ship.x;
+                                ship.targety = ship.y;
+                                ship.transfertargetid = planet.id;
+                                ship.transfertargettype = 1;
+                                ship.changed = 1
+                                if (debug) {console.log("            >>> orbiting UNOWNED planet = id:"+planet.id);}
+                            }
+                            else  {
+                            ship.transferclans = 1;     // beam transfer 1 clan
+                            ship.clans -= 1;
+                            ship.target = planet;
+                            ship.targetx = ship.x;
+                            ship.targety = ship.y;
+                            ship.transfertargetid = planet.id;
+                            ship.transfertargettype = 1;
+                            ship.changed = 1
+                            if (debug) {console.log("            >>> orbiting UNOWNED planet = id:"+planet.id);}
+                            }
+                        }
+                    }
+                }//  end Fearless ship processing loop . . . . . . . . . . .
+           // - - ---    - --- - - --- - ---   - -- - ---- - -- - - --
+            // Any FALCONS . . . . . . . . . . .
+                if (ship.hullid == 87) {
+                    // If planet is unowned and has no Amorphs => colonize and react . . . . . . . . . .
+                    if (debug) {console.log("        >>> check loaction FALCON: ID#"+ship.id);}
+                    planet = vgap.planetAt(ship.x,ship.y)
+                    if (planet === undefined){ if (debug)      {console.log("            >>> no planet at ("+ship.x+","+ship.y+")");}}
+                    if (planet !== undefined){
+                        if (planet.ownerid == pid) {if (debug) {console.log("            >>> orbiting OWN planet = id:"+planet.id);}}
+                        if (planet.ownerid == 0 && planet.nativetype !== 5 && ship.transferclans == 0 && ship.clans > 0){
+                            ship.transferclans = 1;     // beam transfer 1 clan
+                            ship.clans -= 1;
+                            ship.target = planet;
+                            ship.targetx = ship.x;
+                            ship.targety = ship.y;
+                            ship.transfertargetid = planet.id;
+                            ship.transfertargettype = 1;
+                            ship.mission = 10;            // beam up fuel
+                            ship.changed = 1
+                            if (debug) {console.log("            >>> orbiting UNOWNED planet = id:"+planet.id);}
+                        }
+                    }
+                    if (ship.friendlycode.match(/HYP/i)){
+                        ship.warp = ship.engineid;
+                        ship.friendlycode = loadFreighters.randFC(ship);
+                        ship.mission = 4;   // set mission to SensorSweep
+                    }
+
+                } //  end FALCON processing loop . . . . . . . . . . .
+            // - - ---    - --- - - --- - ---   - -- - ---- - -- - - --
             }
         }
     },
@@ -261,7 +534,7 @@ var loadFreighters = {
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
     processload: function() {
         if (debug) { console.log("   >>> LoadFreighters: plugin start");}
-        mdsf_show = true;
+        //mdsf_show = true;
         if (mdsf_run == true){
             if (vgap.settings.turn < turnLim){
                 loadFreighters.loadMaster();  // auto-run loop
