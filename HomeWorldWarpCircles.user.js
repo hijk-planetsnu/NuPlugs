@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         HomeWorldWarpCircles
 // @namespace    http://tampermonkey.net/
-// @version      0.05
+// @version      0.07
 // @description  Test Plugin: Add warp circles to homeworld before Turn #010
 // @author       Hijk
-// @include      http://planets.nu/#/*
 // @include      http://planets.nu/*
-// @include      http://play.planets.nu/*
-// @include      http://test.planets.nu/*
+// @include      https://planets.nu/*
+// @include      http://*.planets.nu/*
+// @include      https://*.planets.nu/*
 // @grant        none
 // ==/UserScript==
 /*- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
@@ -24,16 +24,12 @@ OBJ: At TURN #001 of a new game, create a note using the "MapDraw" format for
 Given that the note body string for vgaMapMarkUp should look like:
 "body": "[{\"active\":true,\"name\":\"HOME\",\"markups\":[{\"type\":\"circle\",\"x\":2363,\"y\":2690,\"r\":81,\"attr\":{\"stroke\":\"#669966\"},\"color\":\"#669966\",\"zmin\":0,\"zmax\":0},{\"type\":\"circle\",\"x\":2363,\"y\":2690,\"r\":161,\"attr\":{\"stroke\":\"#669966\"},\"color\":\"#669966\",\"zmin\":0,\"zmax\":0}]}]",
 
-Then . . .
-Code Tasks:
-   1. Make option available in dash menu for turns 1-10
-   2. Find HW x,y location.
-   3. Save map markup object as new note.
-   4. Add circles to the Map MarkUp layers.
-   5. Remove option from dash menu when completed or turn > 10
 
 NOTE: Function is dependanet upon the vgaMapMarkUp plugin.
 
+v0.07 - fixed a key error issue (float value instead on integer was being stored)
+      - added 450ly demarcation = nearest neighbors likely boundary  (190321)
+v0.06 - bug fix that prevented new Map Draw markups from being saved.
 v0.05 - Put small circle at center of star map
 v0.04 - Use "vgap.addOns.vgapMapMarkUp.overlays" to perform redraw.
 v0.03 - Instead of using a hard-coded "note" string, create a real "overlay"
@@ -45,20 +41,19 @@ v0.02 - The Planetary Management Plugin loads first and generates 5 Notes.
    the warpcircle note data. *** Does not work unless PMP has executed first.
    >> Just use a hard-coded ID value of 6.
 
-hijk.180618
+hijk.190316
 - --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 - --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -*/
 
 function wrapper() { // . . . . . . . . . . . wrapper for injection
     var debug = false;
     var plgname = "HomeWorldWarpCircles";
-    var plgversion = 0.05;
+    var plgversion = 0.07;
     var hwwc_show = true;                            // display option for left menu bar
-    var hwwc_autorun = false;                        // auto-run the add Note function on game load
+    var hwwc_autorun = true;                         // auto-run the add Note function on game load
     var drawNoteType = -133919;                      // MapDraw type code used by vgaMapMarkUp
-    var newNoteIDnum = 7;                            // default 7
-    var wradius = [81, 162, 243]                     // warp distances (ly)
-    var wcolor = ["#669966", "#669966", "#ffff00"]   // warp ring colors
+    var wradius = [81, 162, 243, 450]                // warp distances (ly)
+    var wcolor = ["#669966", "#669966", "#ffcc00", "#990033"]   // warp ring colors
 
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
@@ -76,25 +71,33 @@ var drawWarpCircles = {
     //- --- --- - - --- --- ---- - - --- --- ---
     // 2. Create NOTE object using the MapDraw data structure . . . . . . . . . . .
                     // Create two overlay layers, 0 = HOME and 1 = ENEMY . . . . .
-                    var warpz = [{"active":true,"name":"HOME", "markups":[]}, {"active":true,"name":"ENEMY", "markups":[]}];
+                    var warpz = [{"active":true,"name":"HOME","markups":[]},{"active":true,"name":"ENEMY","markups":[]}];
                     for (var j = 0; j < wradius.length; j++){
                         warpz[0].markups[j] = {"type":"circle","x":planet.x,"y":planet.y,"r":wradius[j],"attr":{"stroke":wcolor[j]},"color":wcolor[j],"zmin":0,"zmax":0}
                     }
                     // Add a reference point in the map center . . . . .
-                    var center = {'x': 0.0, 'y': 0.0}
+                    var center = {'x': 0, 'y': 0}
+                    var pcount = 0
                     for (var k = 0; k < vgap.planets.length; k++) {
-                        center.x += vgap.planets[k].x
-                        center.y += vgap.planets[k].y
-                    }
-                    center.x = center.x/vgap.settings.numplanets
-                    center.y = center.y/vgap.settings.numplanets
-                    if (debug) {console.log("       >>> Map Center = ("+center.x+","+center.y+")");}
-                    warpz[1].markups[0] = {"type":"circle","x":center.x,"y":center.y,"r":16,"attr":{"stroke":"#ff0000"},"color":"#ff0000","zmin":0,"zmax":0}
+                        if (vgap.planets[k].debrisdisk == 0) {
+                            center.x += vgap.planets[k].x;
+                            center.y += vgap.planets[k].y;
+                            pcount += 1;
+                    }   } // close loops
+                    center.x = (center.x/pcount + 0.5);
+                    center.y = (center.y/pcount + 0.5);
+                    var cx = Math.round(center.x);
+                    var cy = Math.round(center.y);
+                    if (debug) {console.log("       >>> Map Center = ("+cx+","+cy+")");}
+                    warpz[1].markups[0] = {"type":"circle","x":cx,"y":cy,"r":8,"attr":{"stroke":"#ffcc00"},"color":"#ffcc00","zmin":0,"zmax":0}
     //- --- --- - - --- --- ---- - - --- --- ---
     // 3. Save as NoteObject and queue for draw on starmap . . . .
-                    vgaPlanets.prototype.saveObjectAsNote(newNoteIDnum, drawNoteType, pid, warpz);
+                    var IDnum = drawWarpCircles.getNoteIDnum();
+                    vgaPlanets.prototype.saveObjectAsNote(IDnum, drawNoteType, warpz);
                     vgap.addOns.vgapMapMarkUp.overlays.push(warpz[0]);
                     vgap.addOns.vgapMapMarkUp.overlays.push(warpz[1]);
+                    hwwc_show = false;
+                    drawWarpCircles.loaddashboard();
     //- --- --- - - --- --- ---- - - --- --- ---
        }   }   } // end nested loops
     },
@@ -119,14 +122,26 @@ var drawWarpCircles = {
         var doesNotExist = 1;
         for (var i = 0; i < vgap.notes.length; i++){
             var note = vgap.notes[i];
-            if (note !== null){
+            if (note.id > 0){
                 if (debug) {console.log("   >>>     type = >"+note.targettype+"< and id = "+note.id);}
                 if (note.body.indexOf("HOME") != -1 && note.targettype == type ) {
-                    doesNotExist = 0;  // false, warp circle note already exists
+                    doesNotExist = 0;         // false, warp circle note already exists
                     if (debug) {console.log("   >>> HW Warp Circles already exists");}
-        }   }   } // close all loops
-        if (doesNotExist == 1 && debug) {console.log("   >>> HW WarpCircles NOTE does not exist.");}
+        }    }    } // close all loops
+        if (doesNotExist == 1 && debug) { console.log("   >>> HW WarpCircles NOTE does not exist."); }
         return doesNotExist;
+    },
+    //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
+    getNoteIDnum: function() {
+        var newNoteIDnum = 0;
+        for (var i = 0; i < vgap.notes.length; i++){
+            var note = vgap.notes[i];
+            if (note.id == 0) {
+                newNoteIDnum = i+1;
+                break;
+        }    } // close loops
+        if (debug) {console.log("   >>>     New Draw Note id# ="+newNoteIDnum);}
+        return newNoteIDnum;
     },
     //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
     //showmap: executed when switching from dashboard to starmap
@@ -135,26 +150,25 @@ var drawWarpCircles = {
     },
 
 }; // end of plugin block
+//- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
+//- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 // Need to access this vgap function to save NOTE data . . . . . . . . . . . .
-vgaPlanets.prototype.saveObjectAsNote = function (idnum, type, pid, object) {
+vgaPlanets.prototype.saveObjectAsNote = function (idnum, type, object) {
     var note = vgap.getNote(idnum, type);
-    if (note.body === "") {
-        note = vgap.addNote(idnum, type);
+        if (note == null)
+            note = vgap.addNote(idnum, type);
         note.changed = 1;
         note.body = JSON.stringify(object);
         //note.body = object;
         note.targettype = type;
         note.color = "";
         note.targetid = 0;
-        note.ownerid = pid;
+        note.ownerid = vgap.player.id;
         note.id = idnum;
         vgap.save();
         if (debug) {console.log("   >>> warp circles saved as note . . . . \nNOTEstart>\n"+note.body+"\n<endNote\n");}
-    } else {
-        if (debug) {console.log("   >>> Note IDNUM Conflict: Could not be saved");}
-    }
 };
 
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
