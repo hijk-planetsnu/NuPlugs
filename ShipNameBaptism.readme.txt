@@ -1,0 +1,50 @@
+PlanetNu Plugin: ShipBaptism v0.08
+hijk/190609
+
+Title: Baptismal Font of Eternal New Ship Names and Warrior Virtues of Victory
+
+Description: ShipBaptism provides a mechanism to easily rename all of your ships.
+   If you like HOST's default use of hull names, this plugin is not for you. Read
+   no more. But if you would like to have the power to quickly change your ship names
+   to either match your mood at a tactical moment or sow confusion amongst your
+   enemies, here's what ShipBaptism does:
+   (1) Allows for ships on the starmap while you are working on your turn to display
+        tactical and informative labels for you. Then when your turn is complete,
+        you can swap ship name lists (saving your tactical list and loading one
+        of the the other warrior lists of glory and righteous vengenace).
+   (2) Maintains 7 internal shipname lists that you create and can modify.
+   (3) Stores 3 long lists (fully editable) to be used as name sources for ships
+        - current defualt lists included by way of example:
+             Russian Field Marshalls, 1700-1915
+             Metallica Song titles
+             Java Error Codes
+        - input your own as comma separated lists
+   (4) Stores 3 short lists of words that can be randomly combined into names
+        - recombinatorial diversity, 3 lists of 10 words = 1,000 unique names (10^3)
+        - current default lists included by way of example:
+             internal organ colors
+             forces of nature
+             calamitous events & supernatural powers
+        -input your own as comma separated lists
+   (5) You can spoof your ships with other hull names and control the race (or combo
+        of races) and tech levels of hulls that you want your ships to have as names.
+   (6) All manual edits to ship names via the ship management window are saved
+        to the current list that is being viewed on the star map. So no info is lost
+        when switching between lists.
+   (7) Add a fleet prefix to your ship names (DFF = Disunited Federation of Fascists)
+   (8) Combine and mix different source lists into your saved ship name lists.
+        Each turn, new ships in your fleet are given a defualt name "Death Has No Name"
+        in all of the saved ship name lists (except the hull name list [HOST default]
+        and the tactical name list [which is an abbreviated combo of hull name and
+        engine, beam and torp tech levels]). Use the "Only Replace Defaults" option
+        when naming to only change those default entries, using a new/different source list.
+
+IMPORTANT:
+1. The "hull" list in ShipBaptism is the HOST default list of uppercase full hull
+names. If you do not use this plugin at all, even though it is loaded, the default name behavior
+of your ships will never change. The plugin will only make changes when you actively make them.
+
+2. The ship names that will be packaged up in your turn file and will be visible to other
+commanders are the ship names visible on the starmap and ship management screen when you
+press "END TURN". IF YOU USE THIS PLUGIN, CHECK THAT YOUR SHIPS HAVE THE NAMES YOU INTEND
+FOR THEM TO HAVE PRIOR TO CLICKING "END TURN".
