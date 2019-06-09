@@ -11,8 +11,8 @@ To learn how the Nu plugins work, I have used a few simple projects to explore g
 
 3. Load Lady Royale - This was a suggested topic at @McNimble's PlanetCon 2017 talk and a code draft was written by @Whisperer. I have re-worked the structure to my way of thinking/tackling problems and added a few other automatic controls that I wanted in place for PRIV games. And I spent some time trying to use the ship-to-planet beam transfer variables as a way to try and have the clans onboard for MCs, and then transfered down to the planet population for growth calc (when a SB is not present and the "Unload Freighters" mission is not available.)
 
-4. Set Map Focus - (beta). A working plugin is available that sets the starmap default focus to the location of your HomeWorld. Planned improvements will be to add optional selections via a input dashboard to select how the x,y point should be calculated. Remember: beta. Better to try some initial tests on training games.
+4. Set Map Focus -  A working plugin is available that sets the starmap default focus to the location of your HomeWorld. Planned improvements will be to add optional selections via a input dashboard to select how the x,y point should be calculated. Remember: beta. Better to try some initial tests on training games.
 
-5. Ship Baptism - (planned). Want to have multiple ship name lists that can be swaped out as an option during any turn. The idea is to keep one internal ship name list that is used client-side, but before submitting the turn, the ship names could be changed with other lists and these would be the names that the other players would see and the names that would be used in explosion reports. 
+5. Ship Baptism - (beta). Want to have multiple ship name lists that can be swaped out as an option during any turn. The idea is to keep one internal ship name list that is used client-side, but before submitting the turn, the ship names could be changed with other lists and these would be the names that the other players would see and the names that would be used in explosion reports. 
 
 
