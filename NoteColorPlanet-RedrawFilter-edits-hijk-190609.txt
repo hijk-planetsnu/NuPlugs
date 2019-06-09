@@ -1,0 +1,76 @@
+# -- -- ---- - - -- ---- - - -- --- - - - - -- --- --  - --- ---- - - -- ---- - - - - --
+# EDITS to McNimble RAF to control planet color scheme . . .
+#
+# Change the default planet color scheme to use my Y, B, G codes:
+# Edit the colorForPlanet function around line #426
+# 190419 - added a check for custom colors in NOTES to be displayed . . . . . . .
+#     requires adding a new function "customNoteColorPlanet" 
+
+   colorForPlanet: function(planet) {
+        // Original one-line return function for color as playerid or default grey . . . . . . . . . . . . . . . . . .
+        //         return vgapRAFModel.showPlanet(planet) ? vgapRAFModel.colorForPlanetOwner(planet.ownerid) : "#666666";
+        var debug = false;
+        var planetColor = "#666666";
+
+        // HIJK: If planet is owned by player set planet color based on minerals and natives . . . . . . . .
+        if (planet.ownerid == vgap.player.id){
+            var nativesYes = (planet.nativeclans > 10000) ? 1 : 0;
+            var mineralsYes = ((planet.groundduranium > 2000) || (planet.groundmolybdenum > 2000) || (planet.groundneutronium > 2000)) ? 1 : 0;
+            var ycolor = "#feff3d"
+            var bcolor = "#00679e"
+            var gcolor = "#549c00"
+            var sbcolor = "#8a00e6"
+            var amorph  = "#ffa31a";
+            var bovi    = "#a05070";
+            //vgap.starbases.forEach(vgapRAFModel.planetSBcheck);
+            //var planetSB = vgap.getStarbase(planet.id).planetid > 0 ? 1 : 0;
+            //console.log(">>> planet name = "+planet.name+"; Starbase = "+planet.isbase);
+            // 180529: add different coloring scheme if AMORPH natives are present.
+            if (planet.isbase) {
+                planetColor = sbcolor;
+            } else if (nativesYes == 1 && mineralsYes == 1) {
+                planetColor = gcolor;
+                if (planet.nativetype == 5){ planetColor = bcolor;}
+            } else if (nativesYes == 1){
+                planetColor = ycolor;
+                if (planet.nativetype == 5){ planetColor = amorph;}
+                if (planet.nativetype == 2){ planetColor = bovi;}
+            } else if(mineralsYes == 1){
+                planetColor = bcolor;
+            }
+            if (debug){ console.log(">> RAF - setting planet ",planet.id, "; color = ",planetColor);}
+        } // end if planet is owned by player
+
+        // Check to see if there is a defined custom NOTE color for this planet . . . .
+        var noteColor   = vgapRAFModel.customNoteColorPlanet(planet)
+        if (planetColor == "#666666" && noteColor !== "#666666"){
+            planetColor = noteColor
+        }
+       if (planetColor == "#666666"){
+           planetColor = vgapRAFModel.colorForPlanetOwner(planet.ownerid);
+       }
+
+        // See if by only returning a color for the planets you own, allows the custom NOTE colors to be used
+        // return vgapRAFModel.showPlanet(planet) ? planetColor : "#666666";
+       return planetColor;
+
+
+    },
+    // -- --- - - ---- -- - --- --- -- - - - - - - - --- - - -- -- - --
+    // HIJK.190317 = function to read notes for any defined custom colors for planets . . . . .
+    // Check for a custom color note for that planet . . . . . .
+    customNoteColorPlanet: function(planet){
+        var debug = false;
+        var savedColor = "#666666";
+        for (var i = 0; i < vgap.notes.length; i++){
+            var note = vgap.notes[i];
+            if (note.targetid == planet.id && note.targettype == 1){
+                if (note.color.length == 6){
+                    savedColor = "#"+note.color;
+                    if (debug){ console.log("   >> found p",planet.id," color = ", savedColor)}
+                }
+            }
+        }
+        return savedColor;
+    },
+    // -- --- - - ---- -- - --- --- -- - - - - - - - --- - - -- -- - --
