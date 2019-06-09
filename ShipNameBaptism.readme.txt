@@ -48,3 +48,10 @@ of your ships will never change. The plugin will only make changes when you acti
 commanders are the ship names visible on the starmap and ship management screen when you
 press "END TURN". IF YOU USE THIS PLUGIN, CHECK THAT YOUR SHIPS HAVE THE NAMES YOU INTEND
 FOR THEM TO HAVE PRIOR TO CLICKING "END TURN".
+
+3. The dashboard control page has been designed/implemented for the LEGACY PlanetNu client.
+It is doubtful that the mobile client could display the controls and lists in such a way
+that the plugin is actually functional. 
+
+
+
