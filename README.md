@@ -7,9 +7,9 @@ Professionally, I am a big-data, algorithm R&D type of coder. I've worked with a
 
 
 5\. Ship Baptism - (190609 - beta). Want to have multiple ship name lists that can be swaped out as an option during any turn? The idea is to keep one internal ship name list that is used client-side, but before submitting the turn, the ship names could be changed with other lists and these would be the names that the other players would see and the names that would be used in explosion reports. I have to thank @McNimble for naming this plugin idea as "ShipBaptism".  
-    &ensp&nbsp&nbsp&nbsp a. see readme file for this plugin  
-    &nbsp&nbsp&nbsp&nbsp b. see partial screen shot  
-    &nbsp&nbsp&nbsp&nbsp c. html layout designed for LEGACY PlanetsNu on a large desktop screen. The javascript does work in the new mobile client, but with some funky font size disparities. However, given the info and controls embedded in the dashboard view, it is unlikely that it would be functional/practical to use on a small mobile device.  
+  a. see readme file for this plugin  
+  b. see partial screen shot  
+  c. html layout designed for LEGACY PlanetsNu on a large desktop screen. The javascript does work in the new mobile client, but with some funky font size disparities. However, given the info and controls embedded in the dashboard view, it is unlikely that it would be functional/practical to use on a small mobile device.  
     
 
 4\. Set Map Focus -  A working plugin is available that sets the starmap default focus to the location of your HomeWorld. Planned improvements will be to add optional selections via a input dashboard to select how the x,y point should be calculated. Remember: beta. Better to try some initial tests on training games.
