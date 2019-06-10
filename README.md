@@ -6,7 +6,7 @@ hijk.planets@gmail.com
 Professionally, I am a big-data, algorithm R&D type of coder. I've worked with assembly, fortran, c, c++, perl, python and some scala. I had minimal java experience prior to working on PlanetNu plugins. Please forgive any blatant rookie java mistakes that are likely to appear in my code. Always open to advice and guidance to better integrate with the PlanetNu mothership. 
 
 
-5\. Ship Baptism - (190609 - beta). Want to have multiple ship name lists that can be swaped out as an option during any turn? The idea is to keep one internal ship name list that is used client-side, but before submitting the turn, the ship names could be changed with other lists and these would be the names that the other players would see and the names that would be used in explosion reports. I have to thank @McNimble for naming this plugin idea as "ShipBaptism".  
+5\. Ship Baptism - (190609 - beta). Want to have multiple ship name lists that can be swaped out as an option during any turn? The idea is to keep one internal ship name list that is used client-side, but before submitting the turn, the ship names could be changed with other lists and these would be the names that the other players would see and the names that would be used in explosion reports. I have to thank @McNimble for naming this plugin idea as "ShipBaptism".
   * see readme file for this plugin  
   * see partial screen shot  
   * html layout designed for LEGACY PlanetsNu on a large desktop screen. The javascript does work in the new mobile client, but with some funky font size disparities. However, given the info and controls embedded in the dashboard view, it is unlikely that it would be functional/practical to use on a small mobile device.  
