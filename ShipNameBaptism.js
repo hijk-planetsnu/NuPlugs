@@ -63,6 +63,11 @@ commanders are the ship names visible on the starmap and ship management screen 
 press "END TURN". IF YOU USE THIS PLUGIN, CHECK THAT YOUR SHIPS HAVE THE NAMES YOU INTEND
 FOR THEM TO HAVE PRIOR TO CLICKING "END TURN".
 
+3. The dashboard control page has been designed/implemented for the LEGACY PlanetNu client.
+It works OK with the new mobile client except for some funky font size displays. However, it
+is doubtful that all the info and controls currently packed into the dashboard display could 
+be functionally used on a small mobile device screen. 
+
 
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 vlog:
