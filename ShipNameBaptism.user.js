@@ -91,8 +91,8 @@ function wrapper() { // . . . . . . . . . . . wrapper for injection
     var debug        = false;
     var plgname      = "ShipNameBaptism";
     var plgversion   = 0.10;
-    var nameNoteType = -1126518;      // Note type number code for the active shipNames saved as Notes
-    var longNoteType = -1126519;      // Note type number code for the default Long Lists saved as Notes
+    var nameNoteType = -1126521;      // Note type number code for the active shipNames saved as Notes
+    var longNoteType = -1126522;      // Note type number code for the default Long Lists saved as Notes
     //var testgame     = "BIRD-043";  // vgap.settings.name for development/testing
     var noteID       = 0;             // id numstr for NOTE functions
     var showList     = "hull";        // initial default shipname list to use (hull = default Host names);
