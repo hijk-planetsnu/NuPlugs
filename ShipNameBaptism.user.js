@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ShipNameBaptism
 // @namespace    hijk/planets.nu
-// @version      0.09
+// @version      0.10
 // @description  Establish public and private name lists for current ships.
 // @author       hijk.planets@gmail.com
 // @homepage     https://github.com/hijk-planetsnu/NuPlugs
@@ -70,7 +70,13 @@ be functionally used on a small mobile device screen.
 
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 vlog:
-v0.09 - add saveNotes prototype function
+v0.10 - fix: when initializing for the first time, current ship names are now saved into
+             the 'hull' list instead of rewriting all shipnames with a new hull name. 190615
+        expand default short word lists;
+        revise random selection to be more equal across all list outcomes . . .
+            - even distribution sampling with a random seed as opposed to purely random sampling;
+        do not change ship names if TurnReady==true; 190610
+v0.09 - add saveNotes prototype function;
 v0.08 - html re-organized, code cleaned, ready for beta. 190609
 v0.07 - added Spoof Name function; minor bug fixes. 190608
 v0.06 - jscrollpane scrollTop fixed! plus beta testign controls and functions. 190526
@@ -84,7 +90,7 @@ v0.01 - hijk.180903: start
 function wrapper() { // . . . . . . . . . . . wrapper for injection
     var debug        = false;
     var plgname      = "ShipNameBaptism";
-    var plgversion   = 0.09;
+    var plgversion   = 0.10;
     var nameNoteType = -1126518;      // Note type number code for the active shipNames saved as Notes
     var longNoteType = -1126519;      // Note type number code for the default Long Lists saved as Notes
     //var testgame     = "BIRD-043";  // vgap.settings.name for development/testing
@@ -101,10 +107,10 @@ function wrapper() { // . . . . . . . . . . . wrapper for injection
     var defaultLong2 = [ '... and Justice For All', '2 X 4', 'All Within My Hands', 'Am I Evil?', 'Bad Attitude', 'Bad Seed', 'Battery', 'Better Than You', 'Blackened', 'Bleeding Me', 'Blitzkrieg', 'Breadfan', 'Carpe Diem Baby', 'Crash Course In Brain Surgery', 'Creeping Death', 'Cure', 'Damage Case', 'Damage Inc.', 'Devils Dance', 'Devils Dance', 'Die, Die My Darling', 'Dirty Window', 'Disposable Heroes', 'Dont Tread On Me', 'Dont Treat On Me', 'Dyers Eve', 'Enter Sandman', 'Escape', 'Eye Of The Beholder', 'Fade To Black', 'Fight Fire With Fire', 'Fixxxer', 'For Whom The Bell Tolls', 'Frantic', 'Free Speech For The Dumb', 'Fuel', 'Fuel For Fire', 'Harvester Of Sorrow', 'Helpless', 'Hero Of The Day', 'Hit The Lights', 'Holier Than Thou', 'Disappear', 'Invisible Kid', 'Its Electric', 'Jump In The Fire', 'Kenny Goes To Hell', 'Kill and Ride Medley', 'Killing Time', 'King Nothing', 'Last Caress in Green Hell', 'Leper Messiah', 'Loverman', 'Low Mans Lyric', 'Mama Said', 'Master Of Puppets', 'Memory Remains', 'Mercyful Fate', 'Metal Militia', 'Motorbreath', 'My Friend Of Misery', 'My World', 'No Leaf Clover', 'No Remorse', 'Nothing Else Matters', 'Of Wolf And Man', 'One', 'Overkill', 'Phantom Lord', 'Poor Twisted Me', 'Prince Charming', 'Purify', 'Ride The Lightning', 'Ronnie', 'Sabbra Cadabra', 'Sad But True', 'Seek And Destroy', 'Shoot Me Again', 'Slither', 'So What', 'Some Kind Of Monster', 'St. Anger', 'Stone Cold Crazy', 'Stone Dead Forever', 'Sweet Amber', 'The Ballad Of ?brain Knight?', 'The Four Horseman', 'The Four Horsemen', 'The Frayed Ends Of Sanity', 'The God That Failed', 'The House That Jack Built', 'The Mechanix', 'The Memory Remains', 'The More I See', 'The Outlaw Torn', 'The Prince', 'The Shortest Straw', 'The Small Hours', 'The Struggle Within', 'The Thing That Should Not Be', 'The Unforgiven', 'The Unforgiven II', 'The Unnamed Feeling', 'The Wait', 'Thorn Within', 'Through The Never', 'To Live Is To Die', 'Too Late Too Late', 'Trapped Under Ice', 'Tuesdays Gone', 'Turn The Page', 'Unnamed Feeling', 'Until It Sleeps', 'Wasting My Hate', 'We Did It Again', 'Welcome Home', 'Where The Wild Things Are', 'Wherever I May Roam', 'Whiplash', 'Whiskey In The Jar'];
     var defaultLong3 = [ 'AbstractMethodError', 'AssertionError', 'ClassCircularityError', 'ClassFormatError', 'Error', 'ExceptionInInitializerError', 'IllegalAccessError', 'IncompatibleClassChangeError', 'InstantiationError', 'InternalError', 'LinkageError', 'NoClassDefFoundError', 'NoSuchFieldError', 'NoSuchMethodError', 'OutOfMemoryError', 'StackOverflowError', 'ThreadDeath', 'UnknownError', 'UnsatisfiedLinkError', 'UnsupportedClassVersionError', 'VerifyError', 'VirtualMachineError', 'ArithmeticException', 'ArrayIndexOutOfBoundsException', 'ArrayStoreException', 'ClassCastException', 'ClassNotFoundException', 'CloneNotSupportedException', 'EnumConstantNotPresentException', 'Exception', 'IllegalAccessException', 'IllegalArgumentException', 'IllegalMonitorStateException', 'IllegalStateException', 'IllegalThreadStateException', 'IndexOutOfBoundsException', 'InstantiationException', 'InterruptedException', 'NegativeArraySizeException', 'NoSuchFieldException', 'NoSuchMethodException', 'NullPointerException', 'NumberFormatException', 'RuntimeException', 'SecurityException', 'StringIndexOutOfBoundsException', 'TypeNotPresentException', 'UnsupportedOperationException', 'ArithmeticException', 'ArrayIndexOutOfBoundsException', 'ArrayStoreException', 'ClassCastException', 'ClassNotFoundException', 'CloneNotSupportedException', 'IllegalAccessException', 'IllegalArgumentException', 'IllegalMonitorStateException', 'IllegalStateException', 'IllegalThreadStateException', 'IndexOutOfBoundsException', 'InstantiationException', 'InterruptedException', 'NegativeArraySizeException', 'NoSuchFieldException', 'NoSuchMethodException', 'NullPointerException', 'NumberFormatException', 'RuntimeException', 'SecurityException', 'StringIndexOutOfBoundsException', 'UnsupportedOperationException', 'ConcurrentModificationException', 'EmptyStackException', 'MissingResourceException', 'NoSuchElementException', 'TooManyListenersException', 'AWTException', 'FontFormatException', 'HeadlessException', 'IllegalComponentStateException', 'CMMException', 'ProfileDataException', 'MimeTypeParseException', 'UnsupportedFlavorException', 'IntrospectionException', 'PropertyVetoException', 'CharConversionException', 'EOFException', 'FileNotFoundException', 'InterruptedIOException', 'InvalidClassException', 'InvalidObjectException', 'IOException', 'NotActiveException', 'NotSerializableException', 'ObjectStreamException', 'OptionalDataException', 'StreamCorruptedException'];
     // SHORT default names and default short lists . . . . . . . . .
-    var shortLists   = [ "Colors", "Forces of Nature", "Unfortunate Calamities"];
-    var defaultShort1= [ 'Black', 'BloodRed', 'BlueBruise', 'Midnight', 'ColdMoon', 'OrangeAnger', 'Crimson', 'Scarlet', 'FrozenLight', 'BrownBile' ];
-    var defaultShort2= [ 'Tide', 'Lightning', 'Blizzard', 'Wave', 'Quake', 'Hurricane', 'Typhoon', 'Tornado', 'Glacier', 'Fire', 'Wind', 'Ice', 'Volcano' ];
-    var defaultShort3= [ 'Death', 'Vengeance', 'Retribution', 'Slaughter', 'Widowmakers', 'Decapitation', 'SoulCrushers', 'Havoc', 'Chaos', 'HellHounds', 'Damnation', 'Hades'];
+    var shortLists   = [ "Cadaver Colors", "Forces of Nature", "Unfortunate Calamities"];
+    var defaultShort1= [ 'Black', 'BloodRed', 'BlueBruise', 'Midnight', 'ColdMoon', 'OrangeAnger', 'Crimson', 'Scarlet', 'FrozenLight', 'BrownBile', 'BlackFear', 'EternalBlack', 'GreenSpleen', 'LiverBruise', 'BloodClot', 'ForeverBreath', 'EmptyNight', 'MidnightTerror', 'BloodThief', 'SanguineRage', 'BlindMalice' ];
+    var defaultShort2= [ 'Tide', 'Lightning', 'Blizzard', 'Wave', 'Quake', 'Hurricane', 'Typhoon', 'Tornado', 'Glacier', 'Fire', 'Wind', 'Ice', 'Volcano', 'Tsunami', 'Snow', 'Current', 'Abyss', 'QuickSand', 'Swamp', 'Cavern', 'Apocalypse', 'Armaggedon', 'Plague', 'Pestilence', 'War', 'Destruction', 'Gale' ];
+    var defaultShort3= [ 'Death', 'Vengeance', 'Retribution', 'Slaughter', 'Widowmakers', 'Decapitation', 'SoulCrushers', 'Havoc', 'Chaos', 'HellHounds', 'Damnation', 'Hades', 'Orphans', 'Phantoms', 'Shadows', 'Souls', 'Specters', 'Banshees', 'Daemons', 'Revenants', 'Vengeful Shades', 'Wraiths', 'Zombies','Disease', 'Famine', 'Pestilence', 'Justice', 'Fear', 'Scorn', 'Disgust', 'Moral Turpitude', 'Armaggedon', 'Hell', 'Eternal Pain', 'DeathStink', 'Insanity', 'Daemonic Possession', 'Fallen Angels'];
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
@@ -416,11 +422,55 @@ var shipNames = {
                 var ship = vgap.ships[j];
                 if (ship.ownerid == pid){ scount += 1; }
             }
-            for (var k=0;k<=scount;k++){
+//             for (var k=0;k<=scount;k++){
+//                 var namewords = "";
+//                 if (preFIX == 1){ namewords = preabrv.trim()+" ";}
+//                 for (i=0;i<wcount;i++){
+//                     var randz = [];
+//                     for (var m=0; m<10; m++){ randz.push(Math.floor(Math.random()* words[i].length));}
+//                     var rint  = Math.floor(Math.random()* 10);
+//                     var rindx = randz[rint];
+//                     // --- -- - ---  - -- --- -  - - - ---- -- --- --
+//                     // 190612 - consider adding unique filter here so that the choice of words
+//                     //   cycles through a full list before repeating prior selections.
+//                     // --- -- - ---  - -- --- -  - - - ---- -- --- --
+//                     namewords = namewords + words[i][rindx];
+//                     if (linkerz[i][0] == 1 && (i+1) < wcount){  // don't use linker if last word.
+//                         if (linkerz[i][1] == " "){
+//                             namewords = namewords + linkerz[i][1];
+//                         }else{
+//                             namewords = namewords + " " + linkerz[i][1] + " ";
+//                 }   }   }
+//                 if (k==0){ nextgenNames = namewords;}
+//                 else { nextgenNames = nextgenNames+"\n"+namewords;}
+//             }
+            var usedindex = [[],[],[]];
+            for (var k=0;k<scount;k++){
                 var namewords = "";
                 if (preFIX == 1){ namewords = preabrv.trim()+" ";}
                 for (i=0;i<wcount;i++){
-                    namewords = namewords + words[i][Math.floor(Math.random() * words[i].length)];
+                    var randz = [];
+                    for (var m=0; m<10; m++){ randz.push(Math.floor(Math.random()* words[i].length));}
+                    var rint  = Math.floor(Math.random()* 10);
+                    var rindx = randz[rint];
+                    // --- -- - ---  - -- --- -  - - - ---- -- --- --
+                    var notdone = 1;
+                    var rcount = 0;
+                    while(notdone){
+                        if (!(usedindex[i].includes(rindx))){
+                            usedindex[i].push(rindx);
+                            notdone = 0;
+                        } else {
+                            rindx += 1;
+                            if (rindx == words[i].length){ rindx = 0; }
+                            rcount += 1;
+                            if (rcount == words[i].length){
+                                usedindex[i] = [];
+                            }
+                        }
+                    }
+                    // --- -- - ---  - -- --- -  - - - ---- -- --- --
+                    namewords = namewords + words[i][rindx];
                     if (linkerz[i][0] == 1 && (i+1) < wcount){  // don't use linker if last word.
                         if (linkerz[i][1] == " "){
                             namewords = namewords + linkerz[i][1];
@@ -837,7 +887,17 @@ var shipNames = {
             if (ship.ownerid == pid){
                 for (var k=0; k<hullNamez.length; k++) {
                     if (ship.hullid == hullNamez[k].hid) {
-                        shipNames.makeNewNames(ship);
+                        //190615: Change routine so that when initializing, current ship names are saved as the "hull" list
+                        var sid = ship.id;
+                        var bname = { "hull":ship.name, "tactical":blankName, "smack":blankName, "malign":blankName, "sublime":blankName, "sober":blankName, "historical":blankName};
+                        if (debug) { console.log("   >>>          new ship sid = "+sid);}
+                        var config = ".w"+ship.engineid;
+                        if (ship.beamid > 0){ config = config+"b"+ship.beamid; };
+                        if (ship.torpedoid > 0){ config = config+"mk"+String(parseInt(ship.torpedoid) - 2)};
+                        bname.tactical = hullNamez[k].sn+config;
+                        baptism_namez[sid] = bname;
+                        ship.name = bname[showList];
+                        ship.changed = 1;
         }   }   }   } // close loops . . . .
         shipNames.saveNames(nameNoteType, baptism_namez)
     },
@@ -903,9 +963,6 @@ var shipNames = {
                 if (ship.beamid > 0){ config = config+"b"+ship.beamid; };
                 if (ship.torpedoid > 0){ config = config+"mk"+String(parseInt(ship.torpedoid) - 2)};
                 bname.tactical = hullNamez[k].sn+config;
-                //bname.smack           = hullNamez[k].sn;
-                //bname.historical = bname.hull;
-                //for (var i=2;i<7;i++){  bname[nameLists[i]] = "undefined"; }
                 baptism_namez[sid] = bname;
                 ship.name = bname[showList];
                 ship.changed = 1;
@@ -956,22 +1013,23 @@ position: absolute; \
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
     loaddashboard: function() {
         //if (vgap.settings.name == testgame){ // <<< only load for the defined test game name
-        vgap.dash.addLeftMenuItem("<font color='#F8CE50'> Ship Names »</font>", shipNames.menuMaster, $("#DashboardMenu").find("ul:eq(3)"));
-        shipNames.resetVars();
-        if(shipNames.checkNoteNull(nameNoteType)) {
-            shipNames.loadNames();
-            shipNames.loadDefaultLists();
-            for (var j=0; j<nameLists.length;j++){
-                if (baptism_namez['000'][nameLists[j]] == "true"){
-                    showList = nameLists[j];
-                    shipNames.changeShipList(showList);
-        }   }   }
-        else {
-            shipNames.initializeNames();
-            shipNames.loadNames();
-            shipNames.initializeDefaultLists();
-            shipNames.loadDefaultLists();
-        }    //} // closing brace for IF TESTGAME NAME control loop
+        if (vgap.player.turnready == false){ // <<< only load if game is NotReady
+            vgap.dash.addLeftMenuItem("<font color='#F8CE50'> Ship Names »</font>", shipNames.menuMaster, $("#DashboardMenu").find("ul:eq(3)"));
+            shipNames.resetVars();
+            if(shipNames.checkNoteNull(nameNoteType)) {
+                shipNames.loadNames();
+                shipNames.loadDefaultLists();
+                for (var j=0; j<nameLists.length;j++){
+                    if (baptism_namez['000'][nameLists[j]] == "true"){
+                        showList = nameLists[j];
+                        shipNames.changeShipList(showList);
+                    }   }   }
+            else {
+                shipNames.initializeNames();
+                shipNames.loadNames();
+                shipNames.initializeDefaultLists();
+                shipNames.loadDefaultLists();
+        }   } // closing brace for IF control loop
     },
     //- --- --- - - --- --- ---- - - --- --- ---
     showdashboard: function() {
