@@ -20,7 +20,7 @@ hijk.planets@gmail.com
 1\. Draw Home World Warp Circles - utilizes the Nu Draw Map addon style of Note overlays to add 81, 162 and 243 ly radii circles around your homeworld at the start of a game.
 
 
-In the beginning . . . To learn how the Nu plugins work, I have used a few simple projects to explore graphic elements and ship + planet controls and variables. The code is highly derivative of other Nu plugin coders and I am thankful for the numerous examples of code I have examined from other execellent plugins.
+In the beginning . . . To learn how the Nu plugins work, I have used a few simple projects to explore graphic elements and ship + planet controls and variables. The code is highly derivative of other Nu plugin coders and I am thankful for the numerous examples of code I have examined from other excellent plugins.
 
 
 
