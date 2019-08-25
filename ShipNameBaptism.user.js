@@ -65,13 +65,13 @@ press "END TURN". IF YOU USE THIS PLUGIN, CHECK THAT YOUR SHIPS HAVE THE NAMES Y
 FOR THEM TO HAVE PRIOR TO CLICKING "END TURN".
 
 3. The dashboard control page has been designed/implemented for the LEGACY PlanetNu client.
-It works OK with the new mobile client except for some funky font size displays. However,
-all the info and controls currently in the dashboard display would not be functional on a
-small mobile device screen.
+It works OK with the new mobile client except for some funky font size displays. Will be revised
+when I am using the new client routinely.
 
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 vlog:
-v0.12 - add ship crew experience to tactical name.                                     190810
+v0.12 - code revision so tactical names are updated each turn (FED refit, Crew Exp)    190825
+      - add ship crew experience to tactical name.                                     190810
 v0.11 - fix rare case bug in replacing default names.                                  190722
       - default showList setting now visible as buttn color change.                    190722
       - save prefix abbreviation when edited and reload on next turn.                  190721
@@ -920,6 +920,7 @@ var shipNames = {
                         found = 1;
                         if (debug) { console.log("   >>>          ship name = "+ship.name);}
                 }   }
+                if (found==1){ shipNames.makeNewTacticalName(ship); }
                 if (found==0){ shipNames.makeNewNames(ship); }
         }   } // close loops
         // Remove the name entries for ships that have been destroyed or captured  . . . .
@@ -955,6 +956,19 @@ var shipNames = {
                 bname.tactical = hullNamez[k].sn+config;
                 baptism_namez[sid] = bname;
                 ship.name = bname[showList];
+                ship.changed = 1;
+    }   }   }, // close loops
+    //- --- --- - - --- --- ---- - - --- --- --- ---- -
+    makeNewTacticalName: function (ship){
+        // Need to update a ship's tactical name with current Experience Values.
+        // Also, for FEDs, need to accoount for Refit Tech changes.
+        for (var k=0; k<hullNamez.length; k++) {
+            if (ship.hullid == hullNamez[k].hid) {
+                var sid = ship.id;
+                var config = "-x"+ship.experience+".w"+ship.engineid;
+                if (ship.beamid > 0){ config = config+"b"+ship.beamid; };
+                if (ship.torpedoid > 0){ config = config+"mk"+String(parseInt(ship.torpedoid) - 2)};
+                baptism_namez[sid]["tactical"] = hullNamez[k].sn+config;
                 ship.changed = 1;
     }   }   }, // close loops
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
