@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ShipNameBaptism
 // @namespace    hijk/planets.nu
-// @version      0.12
+// @version      0.13
 // @description  Establish public and private name lists for current ships.
 // @author       hijk.planets@gmail.com
 // @homepage     https://github.com/hijk-planetsnu/NuPlugs
@@ -70,6 +70,7 @@ when I am using the new client routinely.
 
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 vlog:
+v0.13 - add option for hull-specific prefix names                                      190902
 v0.12 - code revision so tactical names are updated each turn (FED refit, Crew Exp)    190825
       - add ship crew experience to tactical name.                                     190810
 v0.11 - fix rare case bug in replacing default names.                                  190722
@@ -93,9 +94,9 @@ v0.01 - hijk.180903: start
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -*/
 function wrapper() { // . . . . . . . . . . . wrapper for injection
-    var debug        = false;
+    var debug        = true;
     var plgname      = "ShipNameBaptism";
-    var plgversion   = 0.12;
+    var plgversion   = 0.13;
     var nameNoteType = -1126525;      // Note type number code for the active shipNames saved as Notes
     var longNoteType = -1126526;      // Note type number code for the default Long Lists saved as Notes
     //var testgame     = "BIRD-043";  // Limits plugin to be active in only the named game; vgap.settings.name for development/testing
@@ -129,14 +130,15 @@ function wrapper() { // . . . . . . . . . . . wrapper for injection
     var hullNamez    = [{ "hid":210, "hn":"Stinger", "sn":"Stinger", "tech":"1", "race":["12"] }, { "hid":211, "hn":"Dunghill", "sn":"Dung", "tech":"1", "race":["12"] }, { "hid":24, "hn":"Serpent Class Escort", "sn":"Serp", "tech":"1", "race":["2"] }, { "hid":25, "hn":"Saurian Class Light Cruiser", "sn":"Saur", "tech":"7", "race":["2"] }, { "hid":26, "hn":"White Falcon Class Cruiser", "sn":"WFalcon", "tech":"3", "race":["3"] }, { "hid":27, "hn":"Swift Heart Class Scout", "sn":"Swift", "tech":"1", "race":["3"] }, { "hid":20, "hn":"Nova Class Super-dreadnought", "sn":"Nova", "tech":"10", "race":["1"] }, { "hid":21, "hn":"Reptile Class Destroyer", "sn":"RepDest", "tech":"3", "race":["2"] }, { "hid":22, "hn":"Lizard Class Cruiser", "sn":"LCC", "tech":"4", "race":["2"] }, { "hid":23, "hn":"T-Rex Class Battleship", "sn":"TRex", "tech":"10", "race":["2"] }, { "hid":1076, "hn":"Super Star Carrier II", "sn":"SSCarrier II", "tech":"5", "race":["8"] }, { "hid":1074, "hn":"Super Star Cruiser II", "sn":"SSCruiser II", "tech":"9", "race":["8"] }, { "hid":28, "hn":"Fearless Wing Cruiser", "sn":"FWing", "tech":"5", "race":["3"] }, { "hid":29, "hn":"Dark Wing Class Battleship", "sn":"DWing", "tech":"10", "race":["3"] }, { "hid":1071, "hn":"Ru25 Gunboats", "sn":"Ru25B", "tech":"1", "race":["8"] }, { "hid":4, "hn":"Vendetta Class Frigate", "sn":"Vendt", "tech":"5", "race":["1","2"] }, { "hid":8, "hn":"Eros Class Research Vessel", "sn":"Eros", "tech":"4", "race":["1","2"] }, { "hid":2011, "hn":"Thor Class Heavy Frigate", "sn":"ThorHeavy", "tech":"9", "race":["1"] }, { "hid":2010, "hn":"Arkham Class Cruiser", "sn":"ArkhamB", "tech":"8", "race":["1"] }, { "hid":1025, "hn":"Saurian Class Frigate", "sn":"SaurianB", "tech":"7", "race":["2"] }, { "hid":119, "hn":"Soldier", "sn":"Soldier", "tech":"1", "race":["12"] }, { "hid":1090, "hn":"Sage Class Repair Ship", "sn":"SageRepair", "tech":"5", "race":["9","10"] }, { "hid":1093, "hn":"Heavy Armored Transport", "sn":"HATb", "tech":"4", "race":["10"] }, { "hid":1098, "hn":"Taurus Class Transport", "sn":"TaurusB", "tech":"1", "race":["10","11"] }, { "hid":120, "hn":"D9 Usva Class Stealth Raider", "sn":"D9Usva", "tech":"9", "race":["4"] }, { "hid":1021, "hn":"Reptile Class Escort", "sn":"ReptileEscort", "tech":"3", "race":["2"] }, { "hid":118, "hn":"Jacker", "sn":"Jacker", "tech":"1", "race":["12"] }, { "hid":1068, "hn":"Moscow Class Star Destroyer", "sn":"MoscowB", "tech":"3", "race":["8"] }, { "hid":59, "hn":"Small Transport", "sn":"SmallTrans", "tech":"4", "race":["3","4","5","7"] }, { "hid":58, "hn":"Quietus Class Cruiser", "sn":"Quiet", "tech":"5", "race":["6"] }, { "hid":3004, "hn":"Vendetta Stealth Class Frigate", "sn":"VendStealth", "tech":"5", "race":["2"] }, { "hid":55, "hn":"B222 Destroyer", "sn":"B222", "tech":"5", "race":["6"] }, { "hid":54, "hn":"B41 Explorer", "sn":"B41", "tech":"2", "race":["6"] }, { "hid":57, "hn":"Watcher Class Scout", "sn":"Watch", "tech":"1", "race":["6"] }, { "hid":56, "hn":"Firecloud Class Cruiser", "sn":"FCC", "tech":"6", "race":["6"] }, { "hid":51, "hn":"B200 Class Probe", "sn":"B200", "tech":"1", "race":["6"] }, { "hid":50, "hn":"Bloodfang Class Carrier", "sn":"Blood", "tech":"10", "race":["5"] }, { "hid":53, "hn":"Annihilation Class Battleship", "sn":"ANN", "tech":"10", "race":["6"] }, { "hid":52, "hn":"Biocide Class Carrier", "sn":"BIO", "tech":"9", "race":["6"] }, { "hid":1084, "hn":"Pawn B Class Baseship", "sn":"PawnB", "tech":"3", "race":["9"] }, { "hid":2065, "hn":"Imperial Topaz Class Gunboats", "sn":"ImpTopaz", "tech":"3", "race":["7"] }, { "hid":1085, "hn":"Iron Slave Class Tug", "sn":"IronTug", "tech":"2", "race":["6","9"] }, { "hid":1062, "hn":"Sky Garnet Class Frigate", "sn":"SkyB", "tech":"5", "race":["7"] }, { "hid":1083, "hn":"Cybernaut B Class Baseship", "sn":"CybernautB", "tech":"4", "race":["9"] }, { "hid":1065, "hn":"Topaz Class Gunboats", "sn":"TopazB", "tech":"3", "race":["7"] }, { "hid":1089, "hn":"Iron Lady Class Command Ship", "sn":"IronCommand", "tech":"9", "race":["10","11"] }, { "hid":1088, "hn":"Gaurdian B Class Destroyer", "sn":"GaurdB", "tech":"4", "race":["10"] }, { "hid":115, "hn":"Hive", "sn":"Hive", "tech":"1", "race":["12"] }, { "hid":114, "hn":"Lorean Class Temporal Lance", "sn":"Lorean", "tech":"7", "race":["6"] }, { "hid":88, "hn":"Gaurdian Class Destroyer", "sn":"Guard", "tech":"4", "race":["10"] }, { "hid":89, "hn":"Iron Lady Class Frigate", "sn":"IRON", "tech":"9", "race":["10","11"] }, { "hid":111, "hn":"Tantrum Liner", "sn":"Tantrum", "tech":"7", "race":["11"] }, { "hid":110, "hn":"Sapphire Class Space Ship", "sn":"SCSS", "tech":"5", "race":["7"] }, { "hid":113, "hn":"Selenite Class Battlecruiser", "sn":"Selenite", "tech":"8", "race":["7"] }, { "hid":112, "hn":"Zilla Class Battlecarrier", "sn":"Zilla", "tech":"10", "race":["2"] }, { "hid":82, "hn":"Q Tanker", "sn":"QT", "tech":"3", "race":["9"] }, { "hid":83, "hn":"Cybernaut Class Baseship", "sn":"Cynaut", "tech":"4", "race":["9"] }, { "hid":80, "hn":"Automa Class Baseship", "sn":"AUTOMA", "tech":"9", "race":["9"] }, { "hid":81, "hn":"Cat's Paw Class Destroyer", "sn":"Cat", "tech":"2", "race":["9"] }, { "hid":86, "hn":"Tranquility Class Cruiser", "sn":"Tranq", "tech":"6", "race":["10","11"] }, { "hid":87, "hn":"Falcon Class Escort", "sn":"Falcon", "tech":"2", "race":["10"] }, { "hid":84, "hn":"Pawn Class Baseship", "sn":"Pawn", "tech":"3", "race":["9"] }, { "hid":85, "hn":"Iron Slave Class Baseship", "sn":"Iron", "tech":"2", "race":["6","9"] }, { "hid":3, "hn":"Bohemian Class Survey Ship", "sn":"Bohm", "tech":"3", "race":["1"] }, { "hid":7, "hn":"Loki Class Destroyer", "sn":"Loki", "tech":"8", "race":["1","2"] }, { "hid":2071, "hn":"Ru30 Gunboats", "sn":"Ru30B", "tech":"1", "race":["8"] }, { "hid":1010, "hn":"Arkham Class Destroyer", "sn":"ArkDestroyer", "tech":"8", "race":["1"] }, { "hid":1011, "hn":"Thor B Class Frigate", "sn":"ThorB", "tech":"9", "race":["1"] }, { "hid":1012, "hn":"Diplomacy B Class Cruiser", "sn":"DiploB", "tech":"9", "race":["1"] }, { "hid":108, "hn":"Dungeon Class Stargate", "sn":"DCS", "tech":"10", "race":["6"] }, { "hid":109, "hn":"Chameleon Class Freighter ©", "sn":"CCF", "tech":"8", "race":["2"] }, { "hid":102, "hn":"Scorpius Class Light Carrier", "sn":"Scorp", "tech":"6", "race":["11"] }, { "hid":103, "hn":"Cygnus Class Destroyer", "sn":"Cygnus", "tech":"1", "race":["10","11"] }, { "hid":100, "hn":"Sagittarius Class Transport", "sn":"SagiTrans", "tech":"5", "race":["10","11"] }, { "hid":101, "hn":"Gemini Class Transport", "sn":"GemTrans", "tech":"6", "race":["10","11"] }, { "hid":107, "hn":"Armored Ore Condenser", "sn":"AOC", "tech":"4", "race":["4"] }, { "hid":104, "hn":"Neutronic Refinery Ship", "sn":"NFR", "tech":"9", "race":["1","2","3","4","5","6","7","8","9","10","11"] }, { "hid":105, "hn":"Merlin Class Alchemy Ship", "sn":"MERLIN", "tech":"10", "race":["1","2","3","4","5","6","7","8","9","10","11"] }, { "hid":39, "hn":"D19b Nefarious Class Destroyer", "sn":"D19b", "tech":"6", "race":["4"] }, { "hid":38, "hn":"D3 Thorn Class Destroyer", "sn":"D3Thorn", "tech":"5", "race":["4","5"] }, { "hid":33, "hn":"Deth Specula Class Frigate", "sn":"Deth", "tech":"6", "race":["3","4"] }, { "hid":32, "hn":"Bright Heart Class Destroyer", "sn":"Bright", "tech":"3", "race":["3"] }, { "hid":31, "hn":"Resolute Class Battlecruiser", "sn":"REZI", "tech":"7", "race":["3"] }, { "hid":30, "hn":"Valiant Wind Class Carrier", "sn":"Valnt", "tech":"6", "race":["3","4"] }, { "hid":37, "hn":"Ill Wind Class Battlecruiser", "sn":"Illw", "tech":"5", "race":["4"] }, { "hid":36, "hn":"D7 Coldpain Class Cruiser", "sn":"D7cold", "tech":"4", "race":["4"] }, { "hid":35, "hn":"Victorious Class Battleship", "sn":"VICK", "tech":"10", "race":["4"] }, { "hid":34, "hn":"D7a Painmaker Class Cruiser", "sn":"D7a", "tech":"2", "race":["4","5"] }, { "hid":1006, "hn":"Banshee B Class Destroyer", "sn":"BansheeB", "tech":"6", "race":["1"] }, { "hid":1004, "hn":"Vendetta B Class Frigate", "sn":"VendettaB", "tech":"5", "race":["1","2"] }, { "hid":1001, "hn":"Outrider Class Transport", "sn":"OCT", "tech":"1", "race":["1","5"] }, { "hid":1073, "hn":"Mig Class Transport", "sn":"MigB", "tech":"1", "race":["8"] }, { "hid":60, "hn":"Ruby Class Light Cruiser", "sn":"Ruby", "tech":"3", "race":["7"] }, { "hid":61, "hn":"Emerald Class Battlecruiser", "sn":"Emerd", "tech":"6", "race":["7"] }, { "hid":62, "hn":"Sky Garnet Class Destroyer", "sn":"SkyGarn", "tech":"5", "race":["7"] }, { "hid":63, "hn":"Diamond Flame Class Battleship", "sn":"DIAM", "tech":"9", "race":["7"] }, { "hid":64, "hn":"Onyx Class Frigate", "sn":"Onyx", "tech":"8", "race":["7"] }, { "hid":65, "hn":"Topez Class Gunboat", "sn":"Topez", "tech":"3", "race":["7"] }, { "hid":66, "hn":"Opal Class Torpedo Boat", "sn":"Opal", "tech":"2", "race":["7"] }, { "hid":67, "hn":"Crystal Thunder Class Carrier", "sn":"CRYST", "tech":"10", "race":["7"] }, { "hid":68, "hn":"Moscow Class Star Escort", "sn":"Moscow", "tech":"3", "race":["8"] }, { "hid":69, "hn":"Super Star Destroyer", "sn":"SSD", "tech":"6", "race":["8"] }, { "hid":1038, "hn":"D3 Thorn Class Frigate", "sn":"D3B", "tech":"5", "race":["4"] }, { "hid":2, "hn":"Nocturne Class Destroyer", "sn":"Noct", "tech":"2", "race":["1"] }, { "hid":6, "hn":"Banshee Class Destroyer", "sn":"Bansh", "tech":"6", "race":["1"] }, { "hid":1032, "hn":"Bright Heart Light Destroyer", "sn":"BrightB", "tech":"3", "race":["3"] }, { "hid":1033, "hn":"Deth Specula Armoured Frigate", "sn":"DethSpecB", "tech":"6", "race":["3","4"] }, { "hid":1030, "hn":"Valiant Wind Storm-Carrier", "sn":"ValiantB", "tech":"6", "race":["3"] }, { "hid":3033, "hn":"Deth Specula Heavy Frigate", "sn":"DethHeavyB", "tech":"6", "race":["3"] }, { "hid":1034, "hn":"D7b Painmaker Class Cruiser", "sn":"D7b-B", "tech":"2", "race":["4"] }, { "hid":2088, "hn":"Gaurdian C Class Destroyer", "sn":"GaurdC", "tech":"4", "race":["10"] }, { "hid":99, "hn":"Virgo Class Battlestar", "sn":"VIRGO", "tech":"10", "race":["11"] }, { "hid":98, "hn":"Taurus Class Scout", "sn":"Taurus", "tech":"1", "race":["10","11"] }, { "hid":91, "hn":"Deep Space Scout", "sn":"Dscout", "tech":"3", "race":["10"] }, { "hid":90, "hn":"Sage Class Frigate", "sn":"Sage", "tech":"5", "race":["9","10"] }, { "hid":93, "hn":"Armored Transport", "sn":"ArmTrans", "tech":"4", "race":["10"] }, { "hid":92, "hn":"Patriot Class Light Carrier", "sn":"PAT", "tech":"6", "race":["10","11"] }, { "hid":95, "hn":"Little Joe Class Escort", "sn":"Joe", "tech":"2", "race":["11"] }, { "hid":94, "hn":"Rush Class Heavy Carrier", "sn":"RUSH", "tech":"10", "race":["10"] }, { "hid":97, "hn":"Aries Class Transport", "sn":"Aries", "tech":"5", "race":["8","11"] }, { "hid":96, "hn":"Cobol Class Research Cruiser", "sn":"Cobol", "tech":"4", "race":["11"] }, { "hid":11, "hn":"Thor Class Frigate", "sn":"Thor", "tech":"9", "race":["1"] }, { "hid":10, "hn":"Arkham Class Frigate", "sn":"Ark", "tech":"8", "race":["1"] }, { "hid":13, "hn":"Missouri Class Battleship", "sn":"Miss", "tech":"8", "race":["1"] }, { "hid":12, "hn":"Diplomacy Class Cruiser", "sn":"Diplo", "tech":"9", "race":["1"] }, { "hid":15, "hn":"Small Deep Space Freighter", "sn":"SDSF", "tech":"1", "race":["2","3","4","5","6","7","8","9","10","11"] }, { "hid":14, "hn":"Neutronic Fuel Carrier", "sn":"NFC", "tech":"3", "race":["2","3","4","5","7","8","10","11"] }, { "hid":17, "hn":"Large Deep Space Freighter", "sn":"LDSF", "tech":"6", "race":["1","2","3","4","5","6","7","8","9","10","11"] }, { "hid":16, "hn":"Medium Deep Space Freighter", "sn":"MDSF", "tech":"3", "race":["1","2","3","4","5","6","7","8","9","10","11"] }, { "hid":19, "hn":"Kittyhawk Class Carrier", "sn":"Kitty", "tech":"9", "race":["1"] }, { "hid":18, "hn":"Super Transport Freighter", "sn":"SupTF", "tech":"10", "race":["1","2","3","4","5","6","7","8","9","10","11"] }, { "hid":117, "hn":"Brood", "sn":"Brood", "tech":"1", "race":["12"] }, { "hid":2025, "hn":"Saurian Class Heavy Frigate", "sn":"SaurHeavy", "tech":"7", "race":["2"] }, { "hid":1102, "hn":"Scorpius Class Carrier", "sn":"ScorpB", "tech":"6", "race":["11"] }, { "hid":1023, "hn":"T-Rex Class Battleship ©", "sn":"T-RexB", "tech":"10", "race":["2"] }, { "hid":2102, "hn":"Scorpius Class Heavy Carrier", "sn":"ScorpHeavy", "tech":"6", "race":["11"] }, { "hid":1095, "hn":"Little Joe Light Escort", "sn":"JoeB", "tech":"2", "race":["11"] }, { "hid":1039, "hn":"D19c Nefarious Class Destroyer", "sn":"D19c", "tech":"6", "race":["4"] }, { "hid":1054, "hn":"B41b Explorer", "sn":"B41b-B", "tech":"2", "race":["6"] }, { "hid":1055, "hn":"B222b Destroyer", "sn":"B222b", "tech":"5", "race":["6"] }, { "hid":48, "hn":"Skyfire Class Cruiser", "sn":"SkyFire", "tech":"5", "race":["3","5"] }, { "hid":49, "hn":"Madonnzila Class Carrier", "sn":"Madon", "tech":"9", "race":["2"] }, { "hid":46, "hn":"Meteor Class Blockade Runner", "sn":"MCBR", "tech":"5", "race":["5"] }, { "hid":47, "hn":"Red Wind Class Carrier", "sn":"RedWind", "tech":"8", "race":["3","5"] }, { "hid":44, "hn":"Br4 Class Gunship", "sn":"Br4", "tech":"1", "race":["5"] }, { "hid":45, "hn":"Br5 Kaye Class Torpedo Boat", "sn":"Br5", "tech":"3", "race":["5"] }, { "hid":42, "hn":"Lady Royale Class Cruiser", "sn":"Lady", "tech":"5", "race":["5","11"] }, { "hid":43, "hn":"Dwarfstar Class Transport", "sn":"Dwarf", "tech":"3", "race":["5"] }, { "hid":40, "hn":"Little Pest Class Escort", "sn":"Pest", "tech":"2", "race":["4","5"] }, { "hid":41, "hn":"Saber Class Frigate", "sn":"Saber", "tech":"8", "race":["4"] }, { "hid":1, "hn":"Outrider Class Scout", "sn":"Scout", "tech":"1", "race":["1","5"] }, { "hid":5, "hn":"Nebula Class Cruiser", "sn":"Nebula", "tech":"6", "race":["1"] }, { "hid":9, "hn":"Brynhild Class Escort", "sn":"Bryn", "tech":"7", "race":["1"] }, { "hid":2038, "hn":"D3 Thorn Class Cruiser", "sn":"D3B", "tech":"5", "race":["4"] }, { "hid":201, "hn":"Sentry", "sn":"Sentry", "tech":"1", "race":["12"] }, { "hid":203, "hn":"Armoured Nest", "sn":"Armoured Nest", "tech":"1", "race":["12"] }, { "hid":202, "hn":"Nest", "sn":"Nest", "tech":"1", "race":["12"] }, { "hid":205, "hn":"Accelerator", "sn":"Accelerator", "tech":"1", "race":["12"] }, { "hid":204, "hn":"Farm", "sn":"Farm", "tech":"1", "race":["12"] }, { "hid":207, "hn":"Duranium Rock", "sn":"DurRock", "tech":"1", "race":["12"] }, { "hid":206, "hn":"Protofield", "sn":"Protofield", "tech":"1", "race":["12"] }, { "hid":209, "hn":"Molybdenum Rock", "sn":"MolyRock", "tech":"1", "race":["12"] }, { "hid":208, "hn":"Tritanium Rock", "sn":"TritRock", "tech":"1", "race":["12"] }, { "hid":2033, "hn":"Deth Specula Stealth", "sn":"DethStealth", "tech":"6", "race":["4"] }, { "hid":77, "hn":"Pl21 Probe", "sn":"PL21", "tech":"1", "race":["8"] }, { "hid":76, "hn":"Super Star Carrier", "sn":"SSCarrier", "tech":"5", "race":["8"] }, { "hid":75, "hn":"Super Star Frigate", "sn":"SSFrigate", "tech":"4", "race":["8"] }, { "hid":74, "hn":"Super Star Cruiser", "sn":"SSCruiser", "tech":"9", "race":["8"] }, { "hid":73, "hn":"Mig Class Scout", "sn":"Mig", "tech":"1", "race":["8"] }, { "hid":72, "hn":"H-ross Class Light Carrier", "sn":"Hross", "tech":"2", "race":["8"] }, { "hid":71, "hn":"Ru25 Gunboat", "sn":"RU25", "tech":"1", "race":["8"] }, { "hid":70, "hn":"Gorbie Class Battlecarrier", "sn":"GORB", "tech":"10", "race":["8"] }, { "hid":79, "hn":"Golem Class Baseship", "sn":"GOLEM", "tech":"10", "race":["9"] }, { "hid":78, "hn":"Instrumentality Class Baseship", "sn":"INSTRM", "tech":"6", "race":["9"] }, { "hid":1043, "hn":"Dwarfstar II Class Transport", "sn":"DwarfIIB", "tech":"3", "race":["5"] }, { "hid":1041, "hn":"Saber Class Shield Generator", "sn":"SabeB", "tech":"8", "race":["4"] }, { "hid":1040, "hn":"Little Pest Light Escort", "sn":"PestB", "tech":"2", "race":["4","5"] }, { "hid":1047, "hn":"Red Wind Storm-Carrier", "sn":"RedB", "tech":"8", "race":["3","5"] }, { "hid":1049, "hn":"Madonnzila Class Carrier ©", "sn":"MadonB", "tech":"9", "race":["2"] }, { "hid":1048, "hn":"Skyfire Class Transport", "sn":"SkyfireB", "tech":"5", "race":["3","5"] }, { "hid":2006, "hn":"Wild Banshee Class Destroyer", "sn":"BansheeB", "tech":"6", "race":["1"] }, { "hid":2004, "hn":"Vendetta C Class Frigate", "sn":"VendettaC", "tech":"5", "race":["1"] }, { "hid":1059, "hn":"Medium Transport", "sn":"MTb", "tech":"4", "race":["3","4","5","7"] } ]
     var longNamez    = {"default":["a","b","c"]};
     var ynradio      = [1,1,0,0,0,0,1,2];            // position index: 0= full/undef; 1=rand/seq; 2=prefix; 3=listSource; 4=longlist; 5=short1, 6=short2, 7=short3, ;
-    var ynlabels     = [[" Full Replacement for ALL Ships in the destination list.<br>", " Only make names for ships with the default value (\"<i>"+blankName+"</i>\") in the destination list."], [" Use current sequential order.<br>", " Randomize the order of names in each list before assigning to a ship."], [" No<br>"," Yes "], ["LONG: Use the Selected Long List<br>","SHORT: Use the Selected Short Lists"], ["x", "y", "z"], ["a", "b", "c"], ["d", "e", "f"], ["g", "h", "i"] ];
+    var ynlabels     = [[" Full Replacement for ALL Ships in the destination list.<br>", " Only make names for ships with the default value (\"<i>"+blankName+"</i>\") in the destination list."], [" Use current sequential order.<br>", " Randomize the order of names in each list before assigning to a ship."], [" None<br>"," Same Prefix:    "," Hull Specific: "], ["LONG: Use the Selected Long List<br>","SHORT: Use the Selected Short Lists"], ["x", "y", "z"], ["a", "b", "c"], ["d", "e", "f"], ["g", "h", "i"] ];
     var chxshort     = [1,1,1];
     var linkerz      = [[1," "], [1,"of"], [0,""]];
     var scrollz      = 0;
     var nextgenNames = "< no list yet >";
     var destListz    = "sober";
     var spoofListz   = "sublime";
-
+    var preHull      = "16:MDSF; 17:LDSF; 14:NFC;"; // pattern for parsing ==  hull#id colon hullprefix semicolon
+    var preHullNames = {"000":"NADA"}; // dictionary key=hull id#  value=prefix name
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 // START PLUGIN ACTIVE CODE . . . . . . . . . . . . . . .
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
@@ -222,8 +224,16 @@ var shipNames = {
         htmlbuild +=       "<br></td></tr>";
         //preabrv   = longNamez['prefix_abvr'];
         htmlbuild +=       "<tr><td style='text-align:right;vertical-align:top;'><b>Add an abbreviation as a prefix to each ship name:</b></td><td>";
-        for (j=0; j<2;j++){ htmlbuild += shipNames.ynRadio(2, "prefixz", j); }
-        htmlbuild += "== <textarea id='preFix' cols=10 rows=1> "+preabrv+" </textarea>&nbsp &nbsp" + shipNames.buildSaveButtons("SAVE", "savePREABRV", "", 0) + "<br>";
+        for (j=0; j<3;j++){
+            htmlbuild += shipNames.ynRadio(2, "prefixz", j);
+            if (j == 1){
+                htmlbuild += "== <textarea id='preFix' cols=10 rows=1> "+preabrv+" </textarea>&nbsp &nbsp" + shipNames.buildSaveButtons("SAVE", "savePREABRV", "", 0) + "<br>";
+            }
+            if (j == 2){
+                htmlbuild += "== edit hull#id:prefix; <textarea id='HullpreFix' cols=50 rows=1> "+preHull+" </textarea>&nbsp &nbsp" + shipNames.buildSaveButtons("SAVE", "saveHULLABRV", "", 0) + "<br>";
+            }
+        }
+
         htmlbuild +=       "<br></td></tr>";
         // -- --- - - - BLOCK 3   -   - -    -  -- - -
         htmlbuild +=       "<tr><td><hr></td><td></td></tr>";
@@ -366,8 +376,11 @@ var shipNames = {
         radioz = document.getElementsByName('prefixzy');
         var preFIX = (radioz[0].checked ? 0 : 1);
         if (preFIX == 1){
-            preabrv = document.getElementById('preFix').value
+            preFIX = (radioz[1].checked ? 1 : 2);
         }
+        if (preFIX == 1){ preabrv = document.getElementById('preFix').value; }
+        if (preFIX == 2){ shipNames.loadHullPrefixNames(); }
+
         // . ..   . .. . . ..    . .. . .. .. ..  . .. . . ... . . . .
         radioz = document.getElementsByName('seqrandzy');
         var seqRand = (radioz[0].checked ? 0 : 1);
@@ -386,6 +399,10 @@ var shipNames = {
             if (preFIX ==1){
                 for (i=0; i < nameList.length; i++){
                     nameList[i] = preabrv.trim()+" "+nameList[i]
+            }   }
+            if (preFIX == 2){
+                for (i=0; i < nameList.length; i++){
+                    nameList[i] = "<prehull> "+nameList[i]
             }   }
             if (seqRand == 1){
                 for (i = nameList.length - 1; i > 0; i--) {
@@ -433,6 +450,7 @@ var shipNames = {
             for (var k=0;k<scount;k++){
                 var namewords = "";
                 if (preFIX == 1){ namewords = preabrv.trim()+" ";}
+                if (preFIX == 2){ namewords = "<prehull> "; }
                 for (i=0;i<wcount;i++){
                     var randz = [];
                     for (var m=0; m<10; m++){ randz.push(Math.floor(Math.random()* words[i].length));}
@@ -485,6 +503,14 @@ var shipNames = {
         radioz = document.getElementsByName('fullundefzy');
         var modeList = (radioz[0].checked ? 0 : 1);
         // . ..   . .. . . ..    . .. . .. .. ..  . .. . . ... . . . .
+        radioz = document.getElementsByName('prefixzy');
+        var preFIX = (radioz[0].checked ? 0 : 1);
+        if (preFIX == 1){
+            preFIX = (radioz[1].checked ? 1 : 2);
+        }
+        if (preFIX > 0){ preabrv = document.getElementById('preFix').value; }
+        if (preFIX == 2){ shipNames.loadHullPrefixNames(); }
+        // . ..   . .. . . ..    . .. . .. .. ..  . .. . . ... . . . .
         // Save nextgen names to the designated list . . . . .
         var namesToUse = nextgenNames.split("\n");
         var destlist   = nameLists[destindex];
@@ -497,8 +523,17 @@ var shipNames = {
                 if (debug){console.log("mode="+modeList+", ship="+ship.name+", blank="+blankName)};
                 if (modeList == 1 && baptism_namez[ship.id][destlist] !== blankName){ nameflag = 0;}
                 if (nameflag == 1){
-                    baptism_namez[ship.id][destlist] = namesToUse[nameindex];
-                    if (debug){console.log("list="+destlist+", name="+namesToUse[nameindex])};
+                    var newname = namesToUse[nameindex];
+                    if (newname.startsWith("<prehull>")){
+                        if (ship.hullid.toString() in preHullNames){
+                            var hid = ship.hullid.toString();
+                            newname = newname.replace(/<prehull>/,preHullNames[hid]);
+                        } else {
+                            newname = newname.replace(/<prehull>/, preabrv.trim());
+                        }
+                    }
+                    baptism_namez[ship.id][destlist] = newname;
+                    if (debug){console.log("list="+destlist+", name="+newname)};
                     ship.name = baptism_namez[ship.id][destlist];
                     ship.changed = 1;
                     nameindex += 1;
@@ -845,6 +880,67 @@ var shipNames = {
         shipNames.menuMaster();
     },
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
+    saveHULLABRV: function (index){
+        var hullabrv = document.getElementById('HullpreFix').value
+        var hullabrvstr = hullabrv.replace(/["'\s]/g, "");
+        var hullabrvz = hullabrvstr.split(";")
+        var err_count  = 0;
+        var hull_count = 0;
+        var name_count = 0;
+        var clean_string = "";
+        for (var i=0; i < hullabrvz.length; i++){
+            var haze = hullabrvz[i];
+            if (haze.indexOf(":") > 0){
+                var ha = haze.split(":");
+                var hid = ha[0].trim();
+                var hnm = ha[1].trim();
+                if (isNaN(parseInt(hid, 10))){
+                    err_count += 1;
+                } else if (parseInt(hid, 10) > 1 && parseInt(hid, 10) < 3000){
+                    hull_count += 1;
+                }
+                if (hnm.length > 0){ name_count += 1; }
+            }
+        }
+        // Check input names . . . . .
+        if (debug) {console.log("err_count = "+err_count+";  hull = "+hull_count+";  namez = "+name_count);};
+        if (err_count > 0 || (hull_count !== name_count) || (hull_count == 0)){
+            alert("Danger Dr. Smith! Check the Hull Abbreviations you have entered.\n\
+The correct format is:\n   - the integer hull id#\n   - a semicolon (no spaces)\n   - the prefix string for that hull\n   - a semicolon (followed by a space is ok)\n\nTry again.");
+            return;
+        }
+        else {
+            for (i=0; i < hullabrvz.length; i++){
+                haze = hullabrvz[i];
+                if (haze.indexOf(":") > 0){
+                    ha = haze.split(":");
+                    hid = ha[0].trim();
+                    hnm = ha[1].trim();
+                    clean_string += hid + ":" + hnm + "; ";
+        }   }   }
+        preHull = clean_string;
+        longNamez['prefix_hull'] = preHull;
+        shipNames.saveNames(longNoteType, longNamez);
+        console.log(longNamez)
+        scrollz = $('#baptismDash').data('jsp').getContentPositionY();
+        shipNames.menuMaster();
+    },
+    //- --- --- - - --- --- ---- - - --- --- --- ---- -
+    loadHullPrefixNames: function (){
+        if (preHull !== document.getElementById('HullpreFix').value){
+            shipNames.saveHULLABRV();
+        }
+        preHullNames = {};
+        var hullabrvz = preHull.split(";");
+        for (var i=0; i < hullabrvz.length; i++){
+            var haze = hullabrvz[i];
+            if (haze.indexOf(":") > 0){
+                var ha = haze.split(":");
+                var hid = ha[0].trim();
+                var hnm = ha[1].trim();
+                preHullNames[hid] = hnm;
+    }   }   },
+    //- --- --- - - --- --- ---- - - --- --- --- ---- -
     saveLinker: function (index){
         var tabox = "linkwordz"+index
         if (debug){ console.log("  saveLinker:  i="+index+", t="+tabox);}
@@ -897,6 +993,7 @@ var shipNames = {
         longNamez[shortLists[1]] = defaultShort2;
         longNamez[shortLists[2]] = defaultShort3;
         longNamez['prefix_abvr'] = preabrv;
+        longNamez['prefix_hull'] = preHull;
         shipNames.saveNames(longNoteType, longNamez);
     },
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
@@ -939,6 +1036,8 @@ var shipNames = {
     loadDefaultLists: function (){
         longNamez = shipNames.getObjectFromNote(0, longNoteType);
         preabrv   = longNamez['prefix_abvr'];
+        if (typeof longNamez['prefix_hull'] == 'undefined'){ longNamez['prefix_hull'] = preHull;}
+        else {preHull = longNamez['prefix_hull'];}
     },
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
     makeNewNames: function (ship){
@@ -999,6 +1098,7 @@ var shipNames = {
         nextgenNames = "< no list yet >";
         destListz    = "sober";
         spoofListz   = "sublime";
+        preHull      = "16:MDSF; 17:LDSF; 14:NFC;"; // pattern for parsing ==  hull#id colon hullprefix semicolon
     },
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
