@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ShipNameBaptism
 // @namespace    hijk/planets.nu
-// @version      0.13
+// @version      0.14
 // @description  Establish public and private name lists for current ships.
 // @author       hijk.planets@gmail.com
 // @homepage     https://github.com/hijk-planetsnu/NuPlugs
@@ -41,17 +41,21 @@ Description: ShipBaptism provides a mechanism to easily rename all of your ships
              forces of nature
              calamitous events & supernatural powers
         -input your own as comma separated lists
-   (5) You can spoof your ships with other hull names and control the race (or combo
+   (5) SPOOF your ships with other hull names and control the race (or combo
         of races) and tech levels of hulls that you want your ships to have as names.
-   (6) All manual edits to ship names via the ship management window are saved
+   (6) GHOST your ship names by swapping hull names among ships at the same x,y coords.
+        (This is named "ghosting" after seeing @Ghostrider do this continually through
+         one game.)
+   (7) All manual edits to ship names via the ship management window are saved
         to the current list that is being viewed on the star map. So no info is lost
         when switching between lists.
-   (7) Add a fleet prefix to your ship names (DFF = Disunited Federation of Fascists)
-   (8) Combine and mix different source lists into your saved ship name lists.
+   (8) Add a fleet prefix to your ship names (DFF = Disunited Federation of Fascists).
+        Also now includes an option to input hull-specific prefixes for your names.
+   (9) Combine and mix different source lists into your saved ship name lists.
         Each turn, new ships in your fleet are given a default name "Death Has No Name"
         in all of the saved ship name lists (except the hull name list [HOST default]
         and the tactical name list [which is an abbreviated combo of hull name and
-        engine, beam and torp tech levels]). Use the "Only Replace Defaults" option
+        experience, engine, beam and torp tech levels]). Use the "Only Replace Defaults" option
         when naming to only change those default entries, using a new/different source list.
 
 IMPORTANT:
@@ -70,6 +74,7 @@ when I am using the new client routinely.
 
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 vlog:
+v0.14 - add Ghost Naming option for ships at same x,y position                         190915
 v0.13 - add option for hull-specific prefix names                                      190902
 v0.12 - code revision so tactical names are updated each turn (FED refit, Crew Exp)    190825
       - add ship crew experience to tactical name.                                     190810
@@ -94,9 +99,9 @@ v0.01 - hijk.180903: start
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -*/
 function wrapper() { // . . . . . . . . . . . wrapper for injection
-    var debug        = true;
+    var debug        = false;
     var plgname      = "ShipNameBaptism";
-    var plgversion   = 0.13;
+    var plgversion   = 0.14;
     var nameNoteType = -1126525;      // Note type number code for the active shipNames saved as Notes
     var longNoteType = -1126526;      // Note type number code for the default Long Lists saved as Notes
     //var testgame     = "BIRD-043";  // Limits plugin to be active in only the named game; vgap.settings.name for development/testing
@@ -137,8 +142,9 @@ function wrapper() { // . . . . . . . . . . . wrapper for injection
     var nextgenNames = "< no list yet >";
     var destListz    = "sober";
     var spoofListz   = "sublime";
-    var preHull      = "16:MDSF; 17:LDSF; 14:NFC;"; // pattern for parsing ==  hull#id colon hullprefix semicolon
-    var preHullNames = {"000":"NADA"}; // dictionary key=hull id#  value=prefix name
+    var ghostListz   = "sublime";
+    var preHull      = "16:MDSF; 17:LDSF; 14:NFC;";      // pattern for parsing ==  hull#id colon hullprefix semicolon
+    var preHullNames = {"000":"NADA"};                   // dictionary key=hull id#  value=prefix name
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 // START PLUGIN ACTIVE CODE . . . . . . . . . . . . . . .
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
@@ -267,23 +273,26 @@ var shipNames = {
         htmlbuild += "<hr>";
         htmlbuild += "</td></tr>";
 
-//     // 5. GHOSTING ship names by swapping HULL names for ships at same x,y position . . . .
-//         htmlbuild += "<tr><td>";
-//         htmlbuild += "<p></p><p><h3><font color='#F8CE50'>5. GHOSTING ship names by swapping HULL names for ships at same x,y position:</font></h3>To Be Added.</p>";
-//         //for (j=0; j<nameLists.length;j++){ htmlbuild += shipNames.buildSaveButtons(nameLists[j], "saveShipNames", nameLists[j]) + " &nbsp"; }
-//         htmlbuild += "<hr>";
-//         htmlbuild += "</td></tr>";
+    // 5. GHOSTING ship names by swapping HULL names for ships at same x,y position . . . .
+        htmlbuild += "<tr><td>";
+        htmlbuild += "<table><td colspan='2' style='text-align:left;vertical-align:top;'><h3><font color='#F8CE50'>5. GHOSTING ship names by swapping HULL names for ships at same x,y position:</font></h3></td>";
+        htmlbuild += "<tr><td style='text-align:right;vertical-align:top;'> &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp Select the destination List: &nbsp &nbsp</td><td style='text-align:left;vertical-align:top;'>";
+        for (j=0; j<nameLists.length;j++){ htmlbuild += shipNames.buildRadioButtons("ghostList", "changeDestGhost", nameLists[j], "yes") + " &nbsp"; }
+        htmlbuild += "</td></tr>";
+        htmlbuild += "<tr><td></td><td style='text-align:left;vertical-align:top;'><input type='button' value='WRITE GHOST NAMES TO LIST' onclick='vgap.plugins[\""+plgname+"\"].ghostNames()'/> </td></tr></table>";
+        htmlbuild += "<hr>";
+        htmlbuild += "</td></tr>";
 
     // 6. COPY the current ship names shown on the starmap to a different named list . . . .
         htmlbuild += "<tr><td>";
-        htmlbuild += "<p></p><p><h3><font color='#F8CE50'>5. COPY the current ship names shown on the starmap to a different named list:</font></h3> Warning: This will overwrite the contents of the destination target list.</p>";
+        htmlbuild += "<p></p><p><h3><font color='#F8CE50'>6. COPY the current ship names shown on the starmap to a different named list:</font></h3> Warning: This will overwrite the contents of the destination target list.</p>";
         for (j=0; j<nameLists.length;j++){ htmlbuild += shipNames.buildSaveButtons(nameLists[j], "saveShipNames", nameLists[j]) + " &nbsp"; }
         htmlbuild += "<hr>";
         htmlbuild += "</td></tr>";
 
     // 7. RESET a single list of ship names back to the original default name value . . . .
         htmlbuild += "<tr><td>";
-        htmlbuild += "<p></p><p><h3><font color='#F8CE50'>6. RESET a single list of ship names back to the original default values:</font></h3> Warning: This will overwrite the contents of the destination target list.</p>";
+        htmlbuild += "<p></p><p><h3><font color='#F8CE50'>7. RESET a single list of ship names back to the original default values:</font></h3> Warning: This will overwrite the contents of the destination target list.</p>";
         for (j=0; j<nameLists.length;j++){ htmlbuild += shipNames.buildSaveButtons(nameLists[j], "resetNameList", j) + " &nbsp"; }
         htmlbuild += "<hr>";
         htmlbuild += "</td></tr>";
@@ -292,7 +301,7 @@ var shipNames = {
 
     // 8a. Section for adding new Custom SHORT Lists . . . . .
         htmlbuild += "<tr><td>";
-        htmlbuild += "<p><h3><font color='#F8CE50'>7. EDIT/SAVE Custom Working Lists for compiling your Virtuous Ship Names of Righteousness and Glory:</font></h3></p>";
+        htmlbuild += "<p><h3><font color='#F8CE50'>8. EDIT/SAVE Custom Working Lists for compiling your Virtuous Ship Names of Righteousness and Glory:</font></h3></p>";
         htmlbuild += "<h3><b>SHORT SOURCE LISTS:</b></h3> The names in each of these short lists are intended to be randomly combined to generate novel shipnames (e.g., \"adjective1 adjective2 of noun3\").<br>";
         htmlbuild += "Think recombinatorial diversity: 3 lists of 10 words each can be combined to form 1000 unique ship names.<br>";
         htmlbuild += "The text areas can be edited and saved as comma-separated lists of words (with no quotes or apostrophes).<br>";
@@ -603,6 +612,53 @@ var shipNames = {
         shipNames.menuMaster();
     },
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
+    ghostNames: function(){
+        var shiplocz = {};
+       // locate ships . . . . . .
+        var pid = vgap.player.id;
+        for (var j = 0; j < vgap.ships.length; j++) {
+            var ship = vgap.ships[j];
+            if (ship.ownerid == pid){
+                baptism_namez[ship.id][ghostListz] = baptism_namez[ship.id]["hull"];
+                var loc = ship.x+":"+ship.y;
+                if (!(loc in shiplocz)){   shiplocz[loc] = ship.id.toString(); }
+                else {                     shiplocz[loc] = shiplocz[loc] + ","+ship.id.toString();}
+        }   }
+        // rename ships . . . . . .
+        var nameindex = 0
+        for (var locz in shiplocz) {
+            var shipidz = shiplocz[locz].split(",");
+            if (shipidz.length > 1){
+                var hullnamez = [];
+                for (j=0; j < shipidz.length;j++){
+                    var sidint = parseInt(shipidz[j]);
+                    hullnamez.push(baptism_namez[sidint]["hull"]);
+                }
+                // scramble order of hull names . . . . . . . . . .
+                var N = hullnamez.length;
+                var HN = [hullnamez[N-1]];
+                for (var i = 0; i < N-1; i++) {
+                    HN.push(hullnamez[i]);
+                }
+                var scount = 0;
+                for (j=0; j < shipidz.length;j++){
+                    sidint = parseInt(shipidz[j]);
+                    baptism_namez[sidint][ghostListz] = HN[scount];
+                    scount += 1;
+        }   }   }
+        for (j = 0; j < vgap.ships.length; j++) {
+            ship = vgap.ships[j];
+            if (ship.ownerid == pid){
+                ship.name = baptism_namez[ship.id][ghostListz];
+                ship.changed = 1;
+                nameindex += 1;
+        }   }
+        showList = ghostListz;
+        shipNames.saveNames(nameNoteType, baptism_namez);
+        scrollz = 0;
+        shipNames.menuMaster();
+    },
+    //- --- --- - - --- --- ---- - - --- --- --- ---- -
     listClear: function(index){
         index = parseInt(index);
         longNamez[longLists[index]] = ["<empty list>"];
@@ -697,11 +753,16 @@ var shipNames = {
         spoofListz = list;
     },
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
+    changeDestGhost: function(list){
+        ghostListz = list;
+    },
+    //- --- --- - - --- --- ---- - - --- --- --- ---- -
     buildRadioButtons: function(sectionName, funcall, list, showchecked){
         var checked = "";
         if (showchecked == "yes"){ checked = (list == showList ? " checked" : "");}
         if (funcall == "changeDest") {  if (showchecked == "yes"){ checked = (list == destListz ? " checked" : "");}}
         if (funcall == "changeDestSpoof") {  if (showchecked == "yes"){ checked = (list == spoofListz ? " checked" : "");}}
+        if (funcall == "changeDestGhost") {  if (showchecked == "yes"){ checked = (list == ghostListz ? " checked" : "");}}
         return "<input "+checked+" type='radio' name='"+sectionName+"' onclick='vgap.plugins[\""+plgname+"\"]."+funcall+"(\""+list+"\")'>"+list+"</input>";
     },
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
@@ -1098,6 +1159,7 @@ The correct format is:\n   - the integer hull id#\n   - a semicolon (no spaces)\
         nextgenNames = "< no list yet >";
         destListz    = "sober";
         spoofListz   = "sublime";
+        ghostListz   = "sublime";
         preHull      = "16:MDSF; 17:LDSF; 14:NFC;"; // pattern for parsing ==  hull#id colon hullprefix semicolon
     },
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
