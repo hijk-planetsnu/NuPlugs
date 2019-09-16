@@ -1,4 +1,4 @@
-PlanetNu Plugin: ShipBaptism v0.08
+PlanetNu Plugin: ShipBaptism v0.14
 hijk/190609
 
 Title: Baptismal Font of Eternal New Ship Names and Warrior Virtues of Victory
