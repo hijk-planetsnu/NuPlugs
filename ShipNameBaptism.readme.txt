@@ -26,18 +26,23 @@ Description: ShipBaptism provides a mechanism to easily rename all of your ships
              forces of nature
              calamitous events & supernatural powers
         -input your own as comma separated lists
-   (5) You can spoof your ships with other hull names and control the race (or combo
+   (5) SPOOF your ships with other hull names and control the race (or combo
         of races) and tech levels of hulls that you want your ships to have as names.
-   (6) All manual edits to ship names via the ship management window are saved
+   (6) GHOST your ship names by swapping hull names among ships at the same x,y coords.
+        (This is named "ghosting" after seeing @Ghostrider do this continually through
+         one game.)
+   (7) All manual edits to ship names via the ship management window are saved
         to the current list that is being viewed on the star map. So no info is lost
         when switching between lists.
-   (7) Add a fleet prefix to your ship names (DFF = Disunited Federation of Fascists)
-   (8) Combine and mix different source lists into your saved ship name lists.
-        Each turn, new ships in your fleet are given a defualt name "Death Has No Name"
+   (8) Add a fleet prefix to your ship names (DFF = Disunited Federation of Fascists).
+        Also now includes an option to input hull-specific prefixes for your names.
+   (9) Combine and mix different source lists into your saved ship name lists.
+        Each turn, new ships in your fleet are given a default name "Death Has No Name"
         in all of the saved ship name lists (except the hull name list [HOST default]
         and the tactical name list [which is an abbreviated combo of hull name and
-        engine, beam and torp tech levels]). Use the "Only Replace Defaults" option
+        experience, engine, beam and torp tech levels]). Use the "Only Replace Defaults" option
         when naming to only change those default entries, using a new/different source list.
+
 
 IMPORTANT:
 1. The "hull" list in ShipBaptism is the HOST default list of uppercase full hull
