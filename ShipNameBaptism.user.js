@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ShipNameBaptism
 // @namespace    hijk/planets.nu
-// @version      0.15
+// @version      0.16
 // @description  Establish public and private name lists for current ships.
 // @author       hijk.planets@gmail.com
 // @homepage     https://github.com/hijk-planetsnu/NuPlugs
@@ -74,6 +74,7 @@ when I am using the new client routinely.
 
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 vlog:
+v0.16 - bug fix                                                                        190930
 v0.15 - added a "merge" list function to combine two existing lists                    190929
       - added a 4th empty list slot for both long and short lists                      190921
 v0.14 - add Ghost Naming option for ships at same x,y position                         190915
@@ -103,7 +104,7 @@ v0.01 - hijk.180903: start
 function wrapper() { // . . . . . . . . . . . wrapper for injection
     var debug        = true;
     var plgname      = "ShipNameBaptism";
-    var plgversion   = 0.15;
+    var plgversion   = 0.16;
     var nameNoteType = -1126525;      // Note type number code for the active shipNames saved as Notes
     var longNoteType = -1126526;      // Note type number code for the default Long Lists saved as Notes
     //var testgame     = "BIRD-043";  // Limits plugin to be active in only the named game; vgap.settings.name for development/testing
@@ -688,7 +689,7 @@ var shipNames = {
         var pid = vgap.player.id;
         var n1 = mergeListName[0];
         var n2 = mergeListName[1];
-        var d3 = mergeListName[3];
+        var d3 = mergeListName[2];
         var tabox = "mergelink01";
         var linker = document.getElementById(tabox).value
         if (linker == "<space>"){ linker = " ";}
@@ -698,6 +699,8 @@ var shipNames = {
             var ship = vgap.ships[j];
             if (ship.ownerid == pid){
                 baptism_namez[ship.id][d3] = baptism_namez[ship.id][n1] + linker + baptism_namez[ship.id][n2];
+                ship.name = baptism_namez[ship.id][d3];
+                ship.changed = 1;
             }
         }
         showList = d3;
