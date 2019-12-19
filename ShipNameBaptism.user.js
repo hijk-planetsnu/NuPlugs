@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ShipNameBaptism
 // @namespace    hijk/planets.nu
-// @version      0.16
+// @version      0.17
 // @description  Establish public and private name lists for current ships.
 // @author       hijk.planets@gmail.com
 // @homepage     https://github.com/hijk-planetsnu/NuPlugs
@@ -74,6 +74,7 @@ when I am using the new client routinely.
 
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
 vlog:
+v0.17 - bug fix loading longlists; reset note ID numbers                               191215
 v0.16 - bug fix                                                                        190930
 v0.15 - added a "merge" list function to combine two existing lists                    190929
       - added a 4th empty list slot for both long and short lists                      190921
@@ -88,15 +89,17 @@ v0.11 - fix rare case bug in replacing default names.                           
              the 'hull' list instead of rewriting all shipnames with a new HULL name.  190615
 v0.10 - expand default short word lists;
       - revise random selection to be more equal across all list outcomes . . .
-            > even distribution sampling with a random seed as opposed to purely random sampling;
+            > even distribution sampling with a random seed as opposed to
+              purely random sampling;
       - do not change ship names if TurnReady == true;                                 190610
 v0.09 - add saveNotes prototype function;
 v0.08 - html re-organized, code cleaned, ready for beta.                               190609
 v0.07 - added Spoof Name function; minor bug fixes.                                    190608
 v0.06 - jscrollpane scrollTop fixed! plus beta testign controls and functions.         190526
-v0.05 - Full operational plugin completed with all naming operations and options active. 190517
+v0.05 - Full operational plugin completed.                                             190517
 v0.04 - Completed input parameter parsing.                                             190515
-v0.03 - Completed dash board structure using a table to organize/present each unit as a row. Added the jScrollPane() function. 190421
+v0.03 - Completed dash board structure using a table to organize/present each unit
+        as a row. Added the jScrollPane() function.                                    190421
 v0.02 - Working Structure in place to manage lists of different ship names.            190415
 v0.01 - hijk.180903: start
 //- --- --- - - --- --- ---- - - --- --- --- ---- - - - --- - -- -- ---- - - --- -
@@ -104,10 +107,10 @@ v0.01 - hijk.180903: start
 function wrapper() { // . . . . . . . . . . . wrapper for injection
     var debug        = true;
     var plgname      = "ShipNameBaptism";
-    var plgversion   = 0.16;
-    var nameNoteType = -1126525;      // Note type number code for the active shipNames saved as Notes
-    var longNoteType = -1126526;      // Note type number code for the default Long Lists saved as Notes
-    //var testgame     = "BIRD-043";  // Limits plugin to be active in only the named game; vgap.settings.name for development/testing
+    var plgversion   = 0.17;
+    var nameNoteType = -1126527;      // Note type number code for the active shipNames saved as Notes
+    var longNoteType = -1126528;      // Note type number code for the default Long Lists saved as Notes
+  //var testgame     = "BIRD-043";    // Limits plugin to be active in only the named game; vgap.settings.name for development/testing
     var noteID       = 0;             // id numstr for NOTE functions
     var showList     = "hull";        // initial default shipname list to use (hull = default Host names);
     var preabrv      = "WAGB";        // a default prefix for ship names
@@ -207,7 +210,7 @@ var shipNames = {
         // -- --- - - - BLOCK 1   -   - -    -  -- - -
         htmlbuild +=       "<tr><td><h3><font color='#FCE94E'>SOURCE LIST OPTIONS:</font></h3></td><td></td></tr>";
         htmlbuild +=       "<tr><td style='text-align:right;vertical-align:top;'><b>Select a source Long Name List:</b></td><td>";
-        for (j=0; j<4;j++){ htmlbuild += shipNames.ynRadio(4, "listLongz", j); }
+        for (j=0; j<longLists.length;j++){ htmlbuild += shipNames.ynRadio(4, "listLongz", j); }
         htmlbuild +=       "<br></td></tr>";
         htmlbuild +=       "<tr><td style='text-align:right;vertical-align:top;'><b>Select sources and order of Short Word Lists:</b></td><td>";
         for (j=0; j<3;j++){
@@ -424,12 +427,14 @@ var shipNames = {
         // . ..   . .. . . ..    . .. . .. .. ..  . .. . . ... . . . .
         var nameList = [];
         if (listSource == "LONG"){
-            switch(listLong){
-                case 0: nameList = defaultLong1.slice(0); break;
-                case 1: nameList = defaultLong2.slice(0); break;
-                case 2: nameList = defaultLong3.slice(0); break;
-                case 3: nameList = defaultLong4.slice(0); break;
-            }
+//             switch(listLong){
+//                 case 0: nameList = defaultLong1.slice(0); break;
+//                 case 1: nameList = defaultLong2.slice(0); break;
+//                 case 2: nameList = defaultLong3.slice(0); break;
+//                 case 3: nameList = defaultLong4.slice(0); break;
+//             }
+            nameList = longNamez[longLists[listLong]]
+            if (debug) {console.log("LONG listLong = ", listLong, "; nameList = ",nameList);}
             // Make the name list; Refresh the example textarea box . . . . . . . .
             if (preFIX == 1){
                 for (i=0; i < nameList.length; i++){
@@ -730,8 +735,15 @@ var shipNames = {
             var news = newz.split(',');
             longNamez[longLists[k]] = [];
             for (var j=0; j < news.length; j++){ longNamez[longLists[k]].push(news[j].trim()); }
+//             switch(k){
+//                 case 0: defaultShort1 = newz; break;
+//                 case 1: defaultShort2 = newz; break;
+//                 case 2: defaultShort3 = newz; break;
+//                 case 3: defaultShort4 = newz; break;
+//             }
             shipNames.saveNames(longNoteType, longNamez);
             shipNames.loadDefaultLists();
+            if (debug){console.log("   >> B  k =", k,"; longLists=",longLists[k],"; longNamez=",longNamez[longLists[k]]);}
             scrollz = $('#baptismDash').data('jsp').getContentPositionY();
             shipNames.menuMaster();
         }
@@ -758,6 +770,12 @@ var shipNames = {
             var news = newz.split(',');
             longNamez[shortLists[k]] = [];
             for (var j=0; j < news.length; j++){ longNamez[shortLists[k]].push(news[j].trim()); }
+//             switch(k){
+//                 case 0: defaultLong1 = newz; break;
+//                 case 1: defaultLong2 = newz; break;
+//                 case 2: defaultLong3 = newz; break;
+//                 case 3: defaultLong4 = newz; break;
+//             }
             shipNames.saveNames(longNoteType, longNamez);
             shipNames.loadDefaultLists();
             scrollz = $('#baptismDash').data('jsp').getContentPositionY();
@@ -1118,6 +1136,8 @@ The correct format is:\n   - the integer hull id#\n   - a semicolon (no spaces)\
     },
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
     initializeDefaultLists: function (){
+        longNamez['longLists']   = longLists;
+        longNamez['shortLists']  = shortLists;
         longNamez[longLists[0]]  = defaultLong1;
         longNamez[longLists[1]]  = defaultLong2;
         longNamez[longLists[2]]  = defaultLong3;
@@ -1128,8 +1148,6 @@ The correct format is:\n   - the integer hull id#\n   - a semicolon (no spaces)\
         longNamez[shortLists[3]] = defaultShort4;
         longNamez['prefix_abvr'] = preabrv;
         longNamez['prefix_hull'] = preHull;
-        longNamez['longLists']   = longLists;
-        longNamez['shortLists']  = shortLists;
         shipNames.saveNames(longNoteType, longNamez);
     },
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
@@ -1176,18 +1194,15 @@ The correct format is:\n   - the integer hull id#\n   - a semicolon (no spaces)\
         longNamez = shipNames.getObjectFromNote(0, longNoteType);
         preabrv   = longNamez['prefix_abvr'];
 
-        // test for undef . . . . needed to be backward compatible with older version notes; remove by JAN 2021
-        if (typeof longNamez['longLists'] === 'undefined'){
-            longNamez['longLists'] = longLists;
-        }
-        else { longLists = longNamez['longLists']; }
-        // test for undef . . . . needed to be backward compatible with older version notes; remove by JAN 2021
-        if (typeof longNamez['shortLists'] === 'undefined'){
-            longNamez['shortLists'] = shortLists;
-        } else { shortLists = longNamez['shortLists']; }
+        // test for undef . . . .
+        if (typeof longNamez.longLists === 'undefined'){ longNamez.longLists = longLists;}
+        else { longLists = longNamez.longLists; }
 
-        if (typeof longNamez['prefix_hull'] == 'undefined'){ longNamez['prefix_hull'] = preHull;}
-        else {preHull = longNamez['prefix_hull'];}
+        if (typeof longNamez.shortLists === 'undefined'){ longNamez.shortLists = shortLists;}
+        else { shortLists = longNamez.shortLists; }
+
+        if (typeof longNamez.prefix_hull == 'undefined'){ longNamez.prefix_hull = preHull;}
+        else {preHull = longNamez.prefix_hull;}
     },
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
     makeNewNames: function (ship){
@@ -1251,6 +1266,16 @@ The correct format is:\n   - the integer hull id#\n   - a semicolon (no spaces)\
         spoofListz   = "sublime";
         ghostListz   = "sublime";
         preHull      = "16:MDSF; 17:LDSF; 14:NFC;"; // pattern for parsing ==  hull#id colon hullprefix semicolon
+        longLists    = [ "Russian Field Marshals 1700-1915", "Metallica Songs", "Java Error Codes", "empty01"];
+        defaultLong1 = [ 'Count Fedor Golovin', 'Count Boris Sheremetev', 'Prince Alexander Menshikov', 'Prince Anikita Repnin', 'Prince Mikhail Galitzine', 'Count Jacob Bruce', 'Jan Kazimierz Sapieha', 'Prince Ivan Trubetskoy', 'Prince Vasily Vladimirovich Dolgorukov', 'Count Burkhard Christoph von Munnich', 'Count Peter von Lacy', 'Ludwig Johann Wilhelm Gruno von Hessen-Homburg', 'Stepan Apraksin', 'Nikita Yurievich Trubetskoy', 'Count Alexander Buturlin', 'Count Alexei Razumovsky', 'Count Pyotr Saltykov', 'Count Alexander Ivanovich Shuvalov', 'Count Pyotr Ivanovich Shuvalov', 'Peter August Friedrich, Duke of Schleswig-Holstein-Sonderburg-Beck', 'Prince Georg Ludwig of Holstein-Gottorp', 'Count Alexei Bestuzhev-Ruymin', 'Prince Nikita Trubetskoy', 'Count Kirill Razumovsky', 'Prince Alexander Galitzine', 'Count Pyotr Rumyantsev-Zadunaisky', 'Count Zakhar Chernyshyov', 'Prince Grigori Potemkin', 'Prince Aleksander Suvorov', 'Count Ivan Saltykov', 'Prince Nicholas Repnin', 'Prince Nikolay Saltykov', 'Count Ivan Chernyshyov', 'Count Johann Martin von Elmpt', 'Count Valentin Platonovich Musin-Pushkin', 'Count Mikhail Kamensky', 'Victor François de Broglie, 2nd duc de Brogliey', 'Prince Alexander Prozorovsky', 'Count Ivan Gudovich', 'Prince Mikhail Golenischev-Kutuzov', 'Prince Mikhail Barclay de Tolly', 'Prince Fabian Gottlieb von Osten-Sacken', 'Ludwig Adolph Peter, Prince of Sayn-Wittgenstein-Berleburg-Ludwigsburg', 'Prince Ivan Paskevich', 'Count Hans Karl von Diebitsch-Zabalkansky', 'Prince Pyotr Volkonsky', 'Prince Mikhail Vorontsov', 'Prince Alexander Baryatinsky', 'Count Friedrich Wilhelm Rembert von Berg', 'Grand Duke Nikolas Nikolaevich', 'Grand Duke Mikhail Nikolaevich', 'Count Joseph Vladimirovich Gourko', 'Count Dmitry Milyutin'];
+        defaultLong2 = [ '... and Justice For All', '2 X 4', 'All Within My Hands', 'Am I Evil?', 'Bad Attitude', 'Bad Seed', 'Battery', 'Better Than You', 'Blackened', 'Bleeding Me', 'Blitzkrieg', 'Breadfan', 'Carpe Diem Baby', 'Crash Course In Brain Surgery', 'Creeping Death', 'Cure', 'Damage Case', 'Damage Inc.', 'Devils Dance', 'Devils Dance', 'Die, Die My Darling', 'Dirty Window', 'Disposable Heroes', 'Dont Tread On Me', 'Dont Treat On Me', 'Dyers Eve', 'Enter Sandman', 'Escape', 'Eye Of The Beholder', 'Fade To Black', 'Fight Fire With Fire', 'Fixxxer', 'For Whom The Bell Tolls', 'Frantic', 'Free Speech For The Dumb', 'Fuel', 'Fuel For Fire', 'Harvester Of Sorrow', 'Helpless', 'Hero Of The Day', 'Hit The Lights', 'Holier Than Thou', 'Disappear', 'Invisible Kid', 'Its Electric', 'Jump In The Fire', 'Kenny Goes To Hell', 'Kill and Ride Medley', 'Killing Time', 'King Nothing', 'Last Caress in Green Hell', 'Leper Messiah', 'Loverman', 'Low Mans Lyric', 'Mama Said', 'Master Of Puppets', 'Memory Remains', 'Mercyful Fate', 'Metal Militia', 'Motorbreath', 'My Friend Of Misery', 'My World', 'No Leaf Clover', 'No Remorse', 'Nothing Else Matters', 'Of Wolf And Man', 'One', 'Overkill', 'Phantom Lord', 'Poor Twisted Me', 'Prince Charming', 'Purify', 'Ride The Lightning', 'Ronnie', 'Sabbra Cadabra', 'Sad But True', 'Seek And Destroy', 'Shoot Me Again', 'Slither', 'So What', 'Some Kind Of Monster', 'St. Anger', 'Stone Cold Crazy', 'Stone Dead Forever', 'Sweet Amber', 'The Ballad Of ?brain Knight?', 'The Four Horseman', 'The Four Horsemen', 'The Frayed Ends Of Sanity', 'The God That Failed', 'The House That Jack Built', 'The Mechanix', 'The Memory Remains', 'The More I See', 'The Outlaw Torn', 'The Prince', 'The Shortest Straw', 'The Small Hours', 'The Struggle Within', 'The Thing That Should Not Be', 'The Unforgiven', 'The Unforgiven II', 'The Unnamed Feeling', 'The Wait', 'Thorn Within', 'Through The Never', 'To Live Is To Die', 'Too Late Too Late', 'Trapped Under Ice', 'Tuesdays Gone', 'Turn The Page', 'Unnamed Feeling', 'Until It Sleeps', 'Wasting My Hate', 'We Did It Again', 'Welcome Home', 'Where The Wild Things Are', 'Wherever I May Roam', 'Whiplash', 'Whiskey In The Jar'];
+        defaultLong3 = [ 'AbstractMethodError', 'AssertionError', 'ClassCircularityError', 'ClassFormatError', 'Error', 'ExceptionInInitializerError', 'IllegalAccessError', 'IncompatibleClassChangeError', 'InstantiationError', 'InternalError', 'LinkageError', 'NoClassDefFoundError', 'NoSuchFieldError', 'NoSuchMethodError', 'OutOfMemoryError', 'StackOverflowError', 'ThreadDeath', 'UnknownError', 'UnsatisfiedLinkError', 'UnsupportedClassVersionError', 'VerifyError', 'VirtualMachineError', 'ArithmeticException', 'ArrayIndexOutOfBoundsException', 'ArrayStoreException', 'ClassCastException', 'ClassNotFoundException', 'CloneNotSupportedException', 'EnumConstantNotPresentException', 'Exception', 'IllegalAccessException', 'IllegalArgumentException', 'IllegalMonitorStateException', 'IllegalStateException', 'IllegalThreadStateException', 'IndexOutOfBoundsException', 'InstantiationException', 'InterruptedException', 'NegativeArraySizeException', 'NoSuchFieldException', 'NoSuchMethodException', 'NullPointerException', 'NumberFormatException', 'RuntimeException', 'SecurityException', 'StringIndexOutOfBoundsException', 'TypeNotPresentException', 'UnsupportedOperationException', 'ArithmeticException', 'ArrayIndexOutOfBoundsException', 'ArrayStoreException', 'ClassCastException', 'ClassNotFoundException', 'CloneNotSupportedException', 'IllegalAccessException', 'IllegalArgumentException', 'IllegalMonitorStateException', 'IllegalStateException', 'IllegalThreadStateException', 'IndexOutOfBoundsException', 'InstantiationException', 'InterruptedException', 'NegativeArraySizeException', 'NoSuchFieldException', 'NoSuchMethodException', 'NullPointerException', 'NumberFormatException', 'RuntimeException', 'SecurityException', 'StringIndexOutOfBoundsException', 'UnsupportedOperationException', 'ConcurrentModificationException', 'EmptyStackException', 'MissingResourceException', 'NoSuchElementException', 'TooManyListenersException', 'AWTException', 'FontFormatException', 'HeadlessException', 'IllegalComponentStateException', 'CMMException', 'ProfileDataException', 'MimeTypeParseException', 'UnsupportedFlavorException', 'IntrospectionException', 'PropertyVetoException', 'CharConversionException', 'EOFException', 'FileNotFoundException', 'InterruptedIOException', 'InvalidClassException', 'InvalidObjectException', 'IOException', 'NotActiveException', 'NotSerializableException', 'ObjectStreamException', 'OptionalDataException', 'StreamCorruptedException'];
+        defaultLong4 = [ 'EmptySoul'];
+        shortLists   = [ "Cadaver Colors", "Forces of Nature", "Unfortunate Calamities", "empty02"];
+        defaultShort1= [ 'Black', 'BloodRed', 'BlueBruise', 'Midnight', 'ColdMoon', 'OrangeAnger', 'Crimson', 'Scarlet', 'FrozenLight', 'BrownBile', 'BlackFear', 'EternalBlack', 'GreenSpleen', 'LiverBruise', 'BloodClot', 'ForeverBreath', 'EmptyNight', 'MidnightTerror', 'BloodThief', 'SanguineRage', 'BlindMalice' ];
+        defaultShort2= [ 'Tide', 'Lightning', 'Blizzard', 'Wave', 'Quake', 'Hurricane', 'Typhoon', 'Tornado', 'Glacier', 'Fire', 'Wind', 'Ice', 'Volcano', 'Tsunami', 'Snow', 'Current', 'Abyss', 'QuickSand', 'Swamp', 'Cavern', 'Apocalypse', 'Armaggedon', 'Plague', 'Pestilence', 'War', 'Destruction', 'Gale' ];
+        defaultShort3= [ 'Death', 'Vengeance', 'Retribution', 'Slaughter', 'Widowmakers', 'Decapitation', 'SoulCrushers', 'Havoc', 'Chaos', 'HellHounds', 'Damnation', 'Hades', 'Orphans', 'Phantoms', 'Shadows', 'Souls', 'Specters', 'Banshees', 'Daemons', 'Revenants', 'Vengeful Shades', 'Wraiths', 'Zombies','Disease', 'Famine', 'Pestilence', 'Justice', 'Fear', 'Scorn', 'Disgust', 'Moral Turpitude', 'Armaggedon', 'Hell', 'Eternal Pain', 'DeathStink', 'Insanity', 'Daemonic Possession', 'Fallen Angels'];
+        defaultShort4= [ 'GloryDeath' ];
     },
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
     //- --- --- - - --- --- ---- - - --- --- --- ---- -
