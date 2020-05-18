@@ -4,7 +4,8 @@ AddOn plugins for Planets NU client interface
 hijk.planets@gmail.com
 
 
-5\. Ship Baptism - (190721 - beta). Want to have multiple ship name lists that can be swaped out as an option during any turn? The idea is to keep one internal ship name list that is used client-side, but before submitting the turn, the ship names could be changed with other lists and these would be the names that the other players would see and the names that would be used in explosion reports. I have to thank @McNimble for naming this plugin idea as "ShipNameBaptism".
+5\. Ship Baptism - (200518 v0.22; https://greasyfork.org/en/scripts/387698-shipnamebaptism). 
+Want to have multiple ship name lists that can be swaped out as an option during any turn? The idea is to keep one internal ship name list that is used client-side, but before submitting the turn, the ship names could be changed with other lists and these would be the names that the other players would see and the names that would be used in explosion reports. I have to thank @McNimble for naming this plugin idea as "ShipNameBaptism".
   * see readme file for this plugin  
   * see partial screen shot  
   * html layout designed for LEGACY PlanetsNu on a large desktop screen. The javascript does work in the new mobile client, but with some funky font size disparities. However, given the info and controls embedded in the dashboard view, it is unlikely that it would be functional/practical to use on a small mobile device.    
